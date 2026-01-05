@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación TIC</title>
+    <style>
+        :root { --primary: #00ad9f; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        h2 { color: var(--primary); font-size: 1.3em; margin-bottom: 20px; }
+        .question { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 12px; color: #444; font-size: 0.95em; }
+        .emoji-group { display: flex; justify-content: space-between; gap: 5px; }
+        .emoji-btn { flex: 1; border: 2px solid #eee; border-radius: 12px; padding: 8px 2px; cursor: pointer; transition: 0.2s; background: white; }
+        .emoji-btn:hover { border-color: var(--primary); background: #f0fdfa; }
+        .emoji-btn.active { border-color: var(--primary); background: var(--primary); color: white; }
+        .emoji-btn span { display: block; font-size: 22px; margin-bottom: 4px; }
+        .emoji-btn small { font-size: 8px; font-weight: bold; text-transform: uppercase; display: block; line-height: 1; }
+        textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; margin-top: 8px; font-size: 0.9em; }
+        #btn-enviar { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; font-size: 1.1em; margin-top: 15px; cursor: pointer; }
+        #exito, #ya-calificado { display: none; }
+        #nombre-tecnico { color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card" id="form-container">
+        <h2>Tu opinión nos ayuda</h2>
+        <div class="question">
+            <label>1. Profesionalismo del personal:</label>
+            <div class="emoji-group" id="q1">
+                <div class="emoji-btn" onclick="select(this, 'q1', 'Excelente')"><span>😍</span><small>Excelente</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q1', 'Bueno')"><span>🙂</span><small>Bueno</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q1', 'Neutral')"><span>😐</span><small>Neutral</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q1', 'Malo')"><span>🙁</span><small>Malo</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q1', 'Pésimo')"><span>😡</span><small>Pésimo</small></div>
+            </div>
+        </div>
+        <div class="question">
+            <label>2. Rapidez de respuesta:</label>
+            <div class="emoji-group" id="q2">
+                <div class="emoji-btn" onclick="select(this, 'q2', 'Excelente')"><span>😍</span><small>Excelente</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q2', 'Bueno')"><span>🙂</span><small>Bueno</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q2', 'Neutral')"><span>😐</span><small>Neutral</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q2', 'Malo')"><span>🙁</span><small>Malo</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q2', 'Pésimo')"><span>😡</span><small>Pésimo</small></div>
+            </div>
+        </div>
+        <div class="question">
+            <label>3. ¿De acuerdo con la solución brindada?</label>
+            <div class="emoji-group" id="q3">
+                <div class="emoji-btn" onclick="select(this, 'q3', 'Excelente')"><span>😍</span><small>Excelente</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q3', 'Bueno')"><span>🙂</span><small>Bueno</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q3', 'Neutral')"><span>😐</span><small>Neutral</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q3', 'Malo')"><span>🙁</span><small>Malo</small></div>
+                <div class="emoji-btn" onclick="select(this, 'q3', 'Pésimo')"><span>😡</span><small>Pésimo</small></div>
+            </div>
+        </div>
+
+        <div class="question">
+            <label>¿Algún comentario sobre el trabajo de <span id="nombre-tecnico">nuestro personal</span>?</label>
+            <textarea id="comentarios" rows="2"></textarea>
+        </div>
+        <button id="btn-enviar" onclick="enviar()">Enviar Evaluación</button>
+    </div>
+
+    <div id="exito" class="card">
+        <h2 style="font-size: 3em;">✅</h2>
+        <h2>¡Gracias!</h2>
+        <p>Tu retroalimentación ha sido registrada.</p>
+    </div>
+
+    <div id="ya-calificado" class="card">
+        <h2 style="font-size: 3em;">✋</h2>
+        <h2>Evaluación ya realizada</h2>
+        <p>Ya has calificado este ticket anteriormente. ¡Gracias por tu interés!</p>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const ticketId = urlParams.get('ticket') || 'Sin ID';
+        // Leemos el tecnico y cambiamos guiones bajos por espacios para que se vea bien
+        const tecnicoRaw = urlParams.get('tecnico') || 'nuestro personal';
+        const tecnicoLimpio = tecnicoRaw.replace(/_/g, ' ');
+
+        document.getElementById('nombre-tecnico').innerText = tecnicoLimpio;
+
+        // VERIFICAR SI YA CALIFICÓ ESTE TICKET
+        if (localStorage.getItem('calificado_' + ticketId)) {
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('ya-calificado').style.display = 'block';
+        }
+
+        let respuestas = { q1: '', q2: '', q3: '' };
+        function select(el, group, val) {
+            document.querySelectorAll(`#${group} .emoji-btn`).forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            respuestas[group] = val;
+        }
+
+        async function enviar() {
+            if(!respuestas.q1 || !respuestas.q2 || !respuestas.q3) return alert("Por favor selecciona una carita para cada pregunta.");
+            
+            await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ticket: ticketId,
+                    tecnico: tecnicoLimpio,
+                    profesionalismo: respuestas.q1,
+                    rapidez: respuestas.q2,
+                    solucion_encuesta: respuestas.q3,
+                    comentarios: document.getElementById('comentarios').value
+                })
+            });
+
+            // GUARDAR QUE YA CALIFICÓ
+            localStorage.setItem('calificado_' + ticketId, 'true');
+            
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('exito').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

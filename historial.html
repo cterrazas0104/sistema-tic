@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Tickets TIC</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #f8f9fa; color: #777; text-align: left; padding: 12px; font-size: 0.85em; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #eee; color: #444; }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; background: #e9ecef; }
+        .status-active { background: #fff4e6; color: #fd7e14; }
+        .btn-resolver { color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9em; font-weight: bold; display: inline-block; transition: 0.3s; }
+        .btn-active { background: var(--accent); }
+        .btn-view { background: #95a5a6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="saludo">Cargando Centro de Tickets...</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Ticket</th>
+                    <th>Usuario</th>
+                    <th>Problema</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const tecnicoNombre = urlParams.get('nombre');
+        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
+
+        if (tecnicoNombre) {
+            document.getElementById('saludo').innerText = "Centro de Tickets: " + tecnicoNombre;
+            cargarTickets();
+        }
+
+        async function cargarTickets() {
+            try {
+                const response = await fetch(webhookURL + "?nombre=" + encodeURIComponent(tecnicoNombre));
+                const texto = await response.text(); 
+                // Limpieza profunda de datos
+                const lista = texto.split(',').map(item => item.trim());
+                const tableBody = document.getElementById('tabla-body');
+                tableBody.innerHTML = "";
+
+                let tickets = [];
+                for (let i = 0; i < lista.length; i += 4) {
+                    if (lista[i]) {
+                        tickets.push({ 
+                            id: lista[i].replace('#', ''), 
+                            user: lista[i+1], 
+                            prob: lista[i+2], 
+                            est: lista[i+3] || 'Sin atender' 
+                        });
+                    }
+                }
+
+                // Orden: Atendiendo primero
+                tickets.sort((a, b) => (a.est === 'Atendiendo' ? -1 : 1));
+
+                tickets.forEach(t => {
+                    const sePuedeEditar = (t.est !== "Concluido" && t.est !== "Revision");
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td><b>#${t.id}</b></td>
+                            <td>${t.user}</td>
+                            <td>${t.prob}</td>
+                            <td><span class="status-badge ${sePuedeEditar ? 'status-active' : ''}">${t.est}</span></td>
+                            <td>
+                                <a href="reporte.html?id=${t.id}&user=${encodeURIComponent(t.user)}&status=${encodeURIComponent(t.est)}&nombre=${encodeURIComponent(tecnicoNombre)}" 
+                                   class="btn-resolver ${sePuedeEditar ? 'btn-active' : 'btn-view'}">
+                                    ${sePuedeEditar ? 'Ver y Resolver' : 'Ver Reporte'}
+                                </a>
+                            </td>
+                        </tr>`;
+                });
+            } catch (e) {
+                document.getElementById('saludo').innerText = "Error al cargar tickets.";
+            }
+        }
+    </script>
+</body>
+</html>
