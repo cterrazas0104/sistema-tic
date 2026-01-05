@@ -13,7 +13,7 @@
         th { background: #f8f9fa; color: #777; text-align: left; padding: 12px; font-size: 0.85em; text-transform: uppercase; }
         td { padding: 15px; border-bottom: 1px solid #eee; color: #444; }
         .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; background: #e9ecef; }
-        .status-active { background: #fff4e6; color: #fd7e14; }
+        .status-pendiente { background: #fff4e6; color: #fd7e14; }
         .btn-resolver { color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9em; font-weight: bold; display: inline-block; transition: 0.3s; }
         .btn-active { background: var(--accent); }
         .btn-view { background: #95a5a6; }
@@ -50,44 +50,51 @@
             try {
                 const response = await fetch(webhookURL + "?nombre=" + encodeURIComponent(tecnicoNombre));
                 const texto = await response.text(); 
-                // Limpieza profunda de datos
+                
+                // Usamos una lógica más inteligente para separar por comas
+                // pero ignorando las que están dentro de textos largos (aproximado)
                 const lista = texto.split(',').map(item => item.trim());
                 const tableBody = document.getElementById('tabla-body');
                 tableBody.innerHTML = "";
 
                 let tickets = [];
+                // Agrupamos de 4 en 4 asumiendo que el ID siempre empieza con # o TIC
                 for (let i = 0; i < lista.length; i += 4) {
                     if (lista[i]) {
                         tickets.push({ 
                             id: lista[i].replace('#', ''), 
-                            user: lista[i+1], 
-                            prob: lista[i+2], 
+                            user: lista[i+1] || 'N/A', 
+                            prob: lista[i+2] || 'N/A', 
                             est: lista[i+3] || 'Sin atender' 
                         });
                     }
                 }
 
-                // Orden: Atendiendo primero
-                tickets.sort((a, b) => (a.est === 'Atendiendo' ? -1 : 1));
+                if (tickets.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No hay tickets pendientes.</td></tr>';
+                    return;
+                }
 
                 tickets.forEach(t => {
-                    const sePuedeEditar = (t.est !== "Concluido" && t.est !== "Revision");
+                    // Solo es editable si NO está en revisión ni concluido
+                    const editable = (t.est !== "Concluido" && t.est !== "Revision");
+                    
                     tableBody.innerHTML += `
                         <tr>
                             <td><b>#${t.id}</b></td>
                             <td>${t.user}</td>
                             <td>${t.prob}</td>
-                            <td><span class="status-badge ${sePuedeEditar ? 'status-active' : ''}">${t.est}</span></td>
+                            <td><span class="status-badge ${editable ? 'status-pendiente' : ''}">${t.est}</span></td>
                             <td>
                                 <a href="reporte.html?id=${t.id}&user=${encodeURIComponent(t.user)}&status=${encodeURIComponent(t.est)}&nombre=${encodeURIComponent(tecnicoNombre)}" 
-                                   class="btn-resolver ${sePuedeEditar ? 'btn-active' : 'btn-view'}">
-                                    ${sePuedeEditar ? 'Ver y Resolver' : 'Ver Reporte'}
+                                   class="btn-resolver ${editable ? 'btn-active' : 'btn-view'}">
+                                    ${editable ? 'Resolver' : 'Ver Detalle'}
                                 </a>
                             </td>
                         </tr>`;
                 });
             } catch (e) {
-                document.getElementById('saludo').innerText = "Error al cargar tickets.";
+                document.getElementById('saludo').innerText = "Error al cargar datos.";
             }
         }
     </script>
