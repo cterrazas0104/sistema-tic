@@ -3,33 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación TIC</title>
+    <title>Evaluación de Servicio TIC</title>
     <style>
         :root { --primary: #00ad9f; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 15px; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
-        h2 { color: var(--primary); font-size: 1.3em; margin-bottom: 20px; }
-        .question { margin-bottom: 20px; }
+        h2 { color: var(--primary); font-size: 1.4em; margin-bottom: 20px; }
+        .question { margin-bottom: 20px; text-align: left; }
         label { display: block; font-weight: 600; margin-bottom: 12px; color: #444; font-size: 0.95em; }
-        .emoji-group { display: flex; justify-content: space-between; gap: 5px; }
-        .emoji-btn { flex: 1; border: 2px solid #eee; border-radius: 12px; padding: 8px 2px; cursor: pointer; transition: 0.2s; background: white; }
+        .emoji-group { display: flex; justify-content: space-between; gap: 8px; }
+        .emoji-btn { flex: 1; border: 2px solid #eee; border-radius: 12px; padding: 10px 2px; cursor: pointer; transition: 0.2s; background: white; text-align: center; }
         .emoji-btn:hover { border-color: var(--primary); background: #f0fdfa; }
         .emoji-btn.active { border-color: var(--primary); background: var(--primary); color: white; }
-        .emoji-btn span { display: block; font-size: 22px; margin-bottom: 4px; }
-        .emoji-btn small { font-size: 8px; font-weight: bold; text-transform: uppercase; display: block; line-height: 1; }
-        textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; margin-top: 8px; font-size: 0.9em; }
-        #btn-enviar { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; font-size: 1.1em; margin-top: 15px; cursor: pointer; }
+        .emoji-btn span { display: block; font-size: 24px; margin-bottom: 4px; }
+        .emoji-btn small { font-size: 9px; font-weight: bold; text-transform: uppercase; display: block; }
+        textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; margin-top: 8px; font-size: 0.9em; resize: none; }
+        #btn-enviar { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; font-size: 1.1em; margin-top: 15px; cursor: pointer; transition: 0.3s; }
+        #btn-enviar:disabled { background: #ccc; cursor: not-allowed; }
         #exito, #ya-calificado, #cargando { display: none; }
         #nombre-tecnico { color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
+
     <div id="cargando" class="card">
+        <h2 style="color: #666;">⏳</h2>
         <p>Verificando estado del ticket...</p>
     </div>
 
     <div class="card" id="form-container">
-        <h2>Tu opinión nos ayuda</h2>
+        <h2>Tu opinión nos ayuda a mejorar</h2>
+        
         <div class="question">
             <label>1. Profesionalismo del personal:</label>
             <div class="emoji-group" id="q1">
@@ -40,6 +44,7 @@
                 <div class="emoji-btn" onclick="select(this, 'q1', 'Pésimo')"><span>😡</span><small>Pésimo</small></div>
             </div>
         </div>
+
         <div class="question">
             <label>2. Rapidez de respuesta:</label>
             <div class="emoji-group" id="q2">
@@ -50,6 +55,7 @@
                 <div class="emoji-btn" onclick="select(this, 'q2', 'Pésimo')"><span>😡</span><small>Pésimo</small></div>
             </div>
         </div>
+
         <div class="question">
             <label>3. ¿De acuerdo con la solución brindada?</label>
             <div class="emoji-group" id="q3">
@@ -63,21 +69,22 @@
 
         <div class="question">
             <label>¿Algún comentario sobre el trabajo de <span id="nombre-tecnico">nuestro personal</span>?</label>
-            <textarea id="comentarios" rows="2"></textarea>
+            <textarea id="comentarios" rows="3" placeholder="Opcional..."></textarea>
         </div>
+
         <button id="btn-enviar" onclick="enviar()">Enviar Evaluación</button>
     </div>
 
     <div id="exito" class="card">
-        <h2 style="font-size: 3em;">✅</h2>
-        <h2>¡Gracias!</h2>
-        <p>Tu retroalimentación ha sido registrada.</p>
+        <h2 style="font-size: 3.5em;">✅</h2>
+        <h2>¡Evaluación Recibida!</h2>
+        <p>Gracias por ayudarnos a mejorar el servicio de TICS SEDIF.</p>
     </div>
 
     <div id="ya-calificado" class="card">
-        <h2 style="font-size: 3em;">✋</h2>
-        <h2>Evaluación ya realizada</h2>
-        <p>Este ticket ya ha sido calificado anteriormente. ¡Gracias por tu participación!</p>
+        <h2 style="font-size: 3.5em;">✋</h2>
+        <h2>Acceso Restringido</h2>
+        <p>Este ticket ya ha sido evaluado o ya se encuentra cerrado en el sistema.</p>
     </div>
 
     <script>
@@ -88,39 +95,45 @@
 
         document.getElementById('nombre-tecnico').innerText = tecnicoLimpio;
 
-        // NUEVA FUNCIÓN DE VERIFICACIÓN REAL
+        // VERIFICACIÓN DE ESTADO REAL EN GOOGLE SHEETS
         async function verificarEstado() {
             document.getElementById('form-container').style.display = 'none';
             document.getElementById('cargando').style.display = 'block';
 
             try {
-                // Consultamos al mismo Webhook que usa el historial para ver si el ticket ya está "Evaluado" o "Concluido"
+                // Usamos el webhook que consulta el historial (asegúrate que este sea el link de tu Webhook de consulta)
                 const response = await fetch('https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=' + encodeURIComponent(tecnicoLimpio));
                 const texto = await response.text();
-                const lista = texto.split(',').map(item => item.trim());
                 
-                let yaEstaCerrado = false;
-                for (let i = 0; i < lista.length; i += 4) {
-                    if (lista[i] === ticketId) {
-                        // Si el estado es "Concluido" o "Evaluado", bloqueamos
-                        if (lista[i+3] === "Concluido" || lista[i+3] === "Evaluado") {
-                            yaEstaCerrado = true;
-                        }
-                        break;
-                    }
-                }
+                // Buscamos el ID del ticket y el estado "Concluido" en la misma cadena de texto
+                const dataLimpia = texto.toLowerCase();
+                const ticketBuscado = ticketId.toLowerCase();
 
-                document.getElementById('cargando').style.display = 'none';
-                if (yaEstaCerrado || localStorage.getItem('calificado_' + ticketId)) {
-                    document.getElementById('ya-calificado').style.display = 'block';
+                // Si el ticket ya figura como Concluido o Evaluado, bloqueamos
+                if (dataLimpia.includes(ticketBuscado) && (dataLimpia.includes("concluido") || dataLimpia.includes("evaluado"))) {
+                    mostrarYaCalificado();
+                } else if (localStorage.getItem('calificado_' + ticketId)) {
+                    mostrarYaCalificado();
                 } else {
+                    document.getElementById('cargando').style.display = 'none';
                     document.getElementById('form-container').style.display = 'block';
                 }
             } catch (e) {
-                // Si falla la red, permitimos el formulario pero confiamos en el localStorage
-                document.getElementById('cargando').style.display = 'none';
-                document.getElementById('form-container').style.display = 'block';
+                console.error("Error de verificación:", e);
+                // Si falla la red, confiamos al menos en el candado local
+                if (localStorage.getItem('calificado_' + ticketId)) {
+                    mostrarYaCalificado();
+                } else {
+                    document.getElementById('cargando').style.display = 'none';
+                    document.getElementById('form-container').style.display = 'block';
+                }
             }
+        }
+
+        function mostrarYaCalificado() {
+            document.getElementById('cargando').style.display = 'none';
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('ya-calificado').style.display = 'block';
         }
 
         verificarEstado();
@@ -133,28 +146,38 @@
         }
 
         async function enviar() {
-            if(!respuestas.q1 || !respuestas.q2 || !respuestas.q3) return alert("Por favor selecciona una carita para cada pregunta.");
+            if(!respuestas.q1 || !respuestas.q2 || !respuestas.q3) {
+                return alert("Por favor califica las 3 preguntas con un emoji.");
+            }
             
-            document.getElementById('btn-enviar').innerText = "Enviando...";
-            document.getElementById('btn-enviar').disabled = true;
+            const btn = document.getElementById('btn-enviar');
+            btn.innerText = "Procesando...";
+            btn.disabled = true;
 
-            await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ticket: ticketId,
-                    tecnico: tecnicoLimpio,
-                    profesionalismo: respuestas.q1,
-                    rapidez: respuestas.q2,
-                    solucion_encuesta: respuestas.q3,
-                    comentarios: document.getElementById('comentarios').value,
-                    accion: "EvaluacionFinalizada" // Importante para que Make sepa que debe cerrar el ticket
-                })
-            });
+            try {
+                // Webhook de procesamiento (el que actualiza el Excel)
+                await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ticket: ticketId,
+                        tecnico: tecnicoLimpio,
+                        profesionalismo: respuestas.q1,
+                        rapidez: respuestas.q2,
+                        solucion_encuesta: respuestas.q3,
+                        comentarios: document.getElementById('comentarios').value,
+                        accion: "EvaluacionFinalizada"
+                    })
+                });
 
-            localStorage.setItem('calificado_' + ticketId, 'true');
-            document.getElementById('form-container').style.display = 'none';
-            document.getElementById('exito').style.display = 'block';
+                localStorage.setItem('calificado_' + ticketId, 'true');
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('exito').style.display = 'block';
+            } catch (e) {
+                alert("Hubo un error al enviar. Intenta de nuevo.");
+                btn.innerText = "Enviar Evaluación";
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
