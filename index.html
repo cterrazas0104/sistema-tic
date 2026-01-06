@@ -3,32 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Sistema TIC - SEDIF</title>
+    <title>Acceso TIC SEDIF</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .login-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 300px; }
-        h2 { color: #00ad9f; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #00ad9f; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 320px; }
+        h2 { color: #00ad9f; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #00ad9f; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #008f83; }
+        #msg { color: #e74c3c; font-size: 14px; margin-top: 15px; min-height: 20px; }
     </style>
 </head>
 <body>
-    <div class="login-card">
+    <div class="card">
         <h2>TIC SEDIF</h2>
-        <input type="password" id="pass" placeholder="Contraseña de acceso">
-        <button onclick="login()">Entrar al Panel</button>
-        <p id="msg" style="color:red; font-size:12px;"></p>
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button onclick="login()">Entrar</button>
+        <div id="msg"></div>
     </div>
-
     <script>
         function login() {
             const p = document.getElementById('pass').value;
-            // Usamos una lógica simple pero efectiva para el acceso
-            if(p === "Sistemas2026*") { // <--- Asegúrate que esta sea tu clave
+            // Contraseña de acceso
+            if(p === "Sistemas2026*") { 
                 sessionStorage.setItem('sesion_tic', 'activa');
                 window.location.href = "historial.html?nombre=Mtr.%20Gabriel%20Terrazas";
             } else {
-                document.getElementById('msg').innerText = "Acceso denegado";
+                document.getElementById('msg').innerText = "Contraseña incorrecta";
             }
         }
     </script>
