@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración TIC</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .btn { display: block; background: var(--primary); color: white; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; text-align: center; transition: 0.3s; }
+        .btn-admin { background: var(--accent); }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .section-title { grid-column: 1 / -1; margin-top: 20px; color: #7f8c8d; font-size: 0.9em; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Panel de Control Administrador</h2>
+        <div class="grid">
+            <div class="section-title">Herramientas Globales</div>
+            <a href="https://docs.google.com/spreadsheets/d/TU_ID_DE_EXCEL" target="_blank" class="btn btn-admin">📊 Abrir Base de Datos (Excel)</a>
+            <a href="evaluacion.html" class="btn btn-admin">⭐ Probar Encuesta</a>
+            
+            <div class="section-title">Historiales por Técnico</div>
+            <a href="historial.html?nombre=Mtr. Gabriel Terrazas" class="btn">📋 Gabriel Terrazas</a>
+            <a href="historial.html?nombre=Lic. en Ingeniería en Computación y Redes Miguel Chavez" class="btn">📋 Miguel Chavez</a>
+            <a href="historial.html?nombre=Lic. en Sistemas Computacionales Eduardo Perez" class="btn">📋 Eduardo Perez</a>
+            <a href="historial.html?nombre=Lic. Martin Alejandro Reyes Bocanegra" class="btn">📋 Alejandro Reyes</a>
+            <a href="historial.html?nombre=Fati" class="btn">📋 Fati</a>
+        </div>
+        <button onclick="logout()" style="margin-top:30px; background:none; border:none; color:#777; cursor:pointer; text-decoration: underline; width: 100%;">Cerrar Sesión Administrador</button>
+    </div>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('adminSession');
+            window.location.href = "index.html";
+        }
+        // Seguridad básica: si no eres admin, te regresa al login
+        if(localStorage.getItem('adminSession') !== 'active') {
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>
