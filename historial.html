@@ -1,102 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+        // Bloqueo de seguridad: Si no hay sesión, fuera.
+        if (sessionStorage.getItem('sesion_tic') !== 'activa') {
+            window.location.href = 'index.html';
+        }
+    </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Tickets TIC</title>
+    <title>Historial de Tickets - SEDIF</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #f8f9fa; color: #777; text-align: left; padding: 12px; font-size: 0.85em; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid #eee; color: #444; }
-        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; background: #e9ecef; }
-        .status-pendiente { background: #fff4e6; color: #fd7e14; }
-        .btn-resolver { color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9em; font-weight: bold; display: inline-block; transition: 0.3s; }
-        .btn-active { background: var(--accent); }
-        .btn-view { background: #95a5a6; }
+        /* Tus estilos actuales de la tabla aquí */
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #00ad9f; color: white; }
+        .estado-concluido { color: green; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2 id="saludo">Cargando Centro de Tickets...</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID Ticket</th>
-                    <th>Usuario</th>
-                    <th>Problema</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-body"></tbody>
-        </table>
-    </div>
+    <h2>Historial de: <span id="tecnico-nombre"></span></h2>
+    <div id="tabla-container">Cargando datos...</div>
 
     <script>
+        // Ofuscación básica de la URL del Webhook
+        const _0x1 = "https://hook.us2.make.com/";
+        const _0x2 = "g2o6bagpnddob1127nhxqpwc7t6sdadx";
+
         const urlParams = new URLSearchParams(window.location.search);
-        const tecnicoNombre = urlParams.get('nombre');
-        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
+        const tecnico = urlParams.get('nombre') || "Mtr. Gabriel Terrazas";
+        document.getElementById('tecnico-nombre').innerText = tecnico;
 
-        if (tecnicoNombre) {
-            document.getElementById('saludo').innerText = "Centro de Tickets: " + tecnicoNombre;
-            cargarTickets();
-        }
-
-        async function cargarTickets() {
+        async function cargarHistorial() {
             try {
-                const response = await fetch(webhookURL + "?nombre=" + encodeURIComponent(tecnicoNombre));
-                const texto = await response.text(); 
-                
-                // Usamos una lógica más inteligente para separar por comas
-                // pero ignorando las que están dentro de textos largos (aproximado)
-                const lista = texto.split(',').map(item => item.trim());
-                const tableBody = document.getElementById('tabla-body');
-                tableBody.innerHTML = "";
-
-                let tickets = [];
-                // Agrupamos de 4 en 4 asumiendo que el ID siempre empieza con # o TIC
-                for (let i = 0; i < lista.length; i += 4) {
-                    if (lista[i]) {
-                        tickets.push({ 
-                            id: lista[i].replace('#', ''), 
-                            user: lista[i+1] || 'N/A', 
-                            prob: lista[i+2] || 'N/A', 
-                            est: lista[i+3] || 'Sin atender' 
-                        });
-                    }
-                }
-
-                if (tickets.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No hay tickets pendientes.</td></tr>';
-                    return;
-                }
-
-                tickets.forEach(t => {
-                    // Solo es editable si NO está en revisión ni concluido
-                    const editable = (t.est !== "Concluido" && t.est !== "Revision");
-                    
-                    tableBody.innerHTML += `
-                        <tr>
-                            <td><b>#${t.id}</b></td>
-                            <td>${t.user}</td>
-                            <td>${t.prob}</td>
-                            <td><span class="status-badge ${editable ? 'status-pendiente' : ''}">${t.est}</span></td>
-                            <td>
-                                <a href="reporte.html?id=${t.id}&user=${encodeURIComponent(t.user)}&status=${encodeURIComponent(t.est)}&nombre=${encodeURIComponent(tecnicoNombre)}" 
-                                   class="btn-resolver ${editable ? 'btn-active' : 'btn-view'}">
-                                    ${editable ? 'Resolver' : 'Ver Detalle'}
-                                </a>
-                            </td>
-                        </tr>`;
-                });
+                const response = await fetch(`${_0x1}${_0x2}?nombre=${encodeURIComponent(tecnico)}`);
+                const data = await response.text();
+                renderTabla(data);
             } catch (e) {
-                document.getElementById('saludo').innerText = "Error al cargar datos.";
+                document.getElementById('tabla-container').innerText = "Error al cargar datos.";
             }
         }
+
+        function renderTabla(csv) {
+            const filas = csv.split('\n');
+            let html = '<table><tr><th>ID</th><th>Fecha</th><th>Usuario</th><th>Descripción</th><th>Estado</th></tr>';
+            
+            filas.forEach(fila => {
+                const columnas = fila.split(',');
+                if(columnas.length >= 4) {
+                    html += `<tr>
+                        <td>${columnas[0]}</td>
+                        <td>${columnas[1]}</td>
+                        <td>${columnas[6]}</td>
+                        <td>${columnas[7]}</td>
+                        <td class="${columnas[10] === 'Concluido' ? 'estado-concluido' : ''}">${columnas[10]}</td>
+                    </tr>`;
+                }
+            });
+            html += '</table>';
+            document.getElementById('tabla-container').innerHTML = html;
+        }
+
+        cargarHistorial();
     </script>
 </body>
 </html>
