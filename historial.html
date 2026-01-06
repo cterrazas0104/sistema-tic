@@ -3,85 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard TIC</title>
+    <title>Centro de Tickets TIC</title>
     <style>
-        :root { --primary: #00ad9f; --bg: #f4f7f6; }
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h2 { color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-        th { background: #f8f9fa; color: #666; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
-        td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: top; }
-        .btn-resolver { background: var(--primary); color: white; padding: 8px 15px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .badge-concluido { background: #e6fcf5; color: #099268; }
-        .badge-revision { background: #fff4e6; color: #d9480f; }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #f8f9fa; color: #777; text-align: left; padding: 12px; font-size: 0.85em; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #eee; color: #444; }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; background: #e9ecef; }
+        .status-pendiente { background: #fff4e6; color: #fd7e14; }
+        .btn-resolver { color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9em; font-weight: bold; display: inline-block; transition: 0.3s; }
+        .btn-active { background: var(--accent); }
+        .btn-view { background: #95a5a6; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Centro de Tickets: <span id="tecnico-nombre"></span></h2>
-        <div id="tabla-body">Cargando reportes...</div>
+        <h2 id="saludo">Cargando Centro de Tickets...</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Ticket</th>
+                    <th>Usuario</th>
+                    <th>Problema</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-body"></tbody>
+        </table>
     </div>
 
     <script>
-        // Usamos el Webhook que YA TENÍAS para consultar el historial
-        const webhookConsulta = "https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx";
+        const urlParams = new URLSearchParams(window.location.search);
+        const tecnicoNombre = urlParams.get('nombre');
+        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
 
-        // Obtenemos el nombre que viene desde el login de la Hoja 2
-        const params = new URLSearchParams(window.location.search);
-        const tecnico = params.get('nombre') || "Mtr. Gabriel Terrazas";
-        document.getElementById('tecnico-nombre').innerText = tecnico;
+        if (tecnicoNombre) {
+            document.getElementById('saludo').innerText = "Centro de Tickets: " + tecnicoNombre;
+            cargarTickets();
+        }
 
-        async function fetchTickets() {
+        async function cargarTickets() {
             try {
-                // Consultamos el historial con el nombre que validó el login
-                const res = await fetch(`${webhookConsulta}?nombre=${encodeURIComponent(tecnico)}`);
-                const csv = await res.text();
+                const response = await fetch(webhookURL + "?nombre=" + encodeURIComponent(tecnicoNombre));
+                const texto = await response.text(); 
                 
-                // Si el CSV viene vacío o con error
-                if (!csv || csv.includes("No se encontraron")) {
-                    document.getElementById('tabla-body').innerHTML = "No hay tickets asignados para " + tecnico;
+                // Usamos una lógica más inteligente para separar por comas
+                // pero ignorando las que están dentro de textos largos (aproximado)
+                const lista = texto.split(',').map(item => item.trim());
+                const tableBody = document.getElementById('tabla-body');
+                tableBody.innerHTML = "";
+
+                let tickets = [];
+                // Agrupamos de 4 en 4 asumiendo que el ID siempre empieza con # o TIC
+                for (let i = 0; i < lista.length; i += 4) {
+                    if (lista[i]) {
+                        tickets.push({ 
+                            id: lista[i].replace('#', ''), 
+                            user: lista[i+1] || 'N/A', 
+                            prob: lista[i+2] || 'N/A', 
+                            est: lista[i+3] || 'Sin atender' 
+                        });
+                    }
+                }
+
+                if (tickets.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No hay tickets pendientes.</td></tr>';
                     return;
                 }
-                renderTable(csv);
-            } catch (e) {
-                document.getElementById('tabla-body').innerHTML = "Error al conectar con el servidor.";
-            }
-        }
 
-        function renderTable(csv) {
-            const filas = csv.split('\n');
-            let html = '<table><thead><tr><th>ID</th><th>Usuario</th><th>Problema</th><th>Estado</th><th>Acción</th></tr></thead><tbody>';
-            
-            let contador = 0;
-            filas.forEach(f => {
-                const c = f.split(',');
-                // Verificamos que la fila tenga datos (mínimo el ID en c[0] y el Usuario en c[6])
-                if (c.length >= 7 && c[0].trim() !== "") {
-                    contador++;
-                    const estado = (c[10] || "Sin atender").trim();
-                    const isConcluido = estado === "Concluido" || estado === "Evaluado";
+                tickets.forEach(t => {
+                    // Solo es editable si NO está en revisión ni concluido
+                    const editable = (t.est !== "Concluido" && t.est !== "Revision");
                     
-                    html += `<tr>
-                        <td><b>#${c[0]}</b></td>
-                        <td>${c[6]}</td>
-                        <td style="max-width:300px">${c[7] || 'Sin descripción'}</td>
-                        <td><span class="badge ${isConcluido ? 'badge-concluido' : 'badge-revision'}">${estado}</span></td>
-                        <td><a href="reporte.html?id=${c[0]}&user=${encodeURIComponent(c[6])}&nombre=${encodeURIComponent(tecnico)}" class="btn-resolver">${isConcluido ? 'Ver Detalle' : 'Resolver'}</a></td>
-                    </tr>`;
-                }
-            });
-            
-            html += '</tbody></table>';
-            
-            if (contador === 0) {
-                document.getElementById('tabla-body').innerHTML = "No hay tickets registrados en el historial.";
-            } else {
-                document.getElementById('tabla-body').innerHTML = html;
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td><b>#${t.id}</b></td>
+                            <td>${t.user}</td>
+                            <td>${t.prob}</td>
+                            <td><span class="status-badge ${editable ? 'status-pendiente' : ''}">${t.est}</span></td>
+                            <td>
+                                <a href="reporte.html?id=${t.id}&user=${encodeURIComponent(t.user)}&status=${encodeURIComponent(t.est)}&nombre=${encodeURIComponent(tecnicoNombre)}" 
+                                   class="btn-resolver ${editable ? 'btn-active' : 'btn-view'}">
+                                    ${editable ? 'Resolver' : 'Ver Detalle'}
+                                </a>
+                            </td>
+                        </tr>`;
+                });
+            } catch (e) {
+                document.getElementById('saludo').innerText = "Error al cargar datos.";
             }
         }
-        fetchTickets();
     </script>
 </body>
 </html>
