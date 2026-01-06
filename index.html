@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control TIC</title>
+    <title>Panel de Control TIC - SEDIF</title>
     <style>
         :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         h2 { color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
         .menu-grid { display: none; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
-        .btn { display: block; background: var(--primary); color: white; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; transition: 0.3s; border: none; width: 100%; cursor: pointer; text-align: center; box-sizing: border-box; }
+        .btn { display: block; background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; transition: 0.3s; border: none; width: 100%; cursor: pointer; text-align: center; box-sizing: border-box; font-size: 14px; }
         .btn-admin { background: var(--accent); }
         .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1em; }
-        #loading { display: none; color: var(--accent); font-weight: bold; margin-bottom: 15px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1em; }
+        #loading { display: none; color: var(--accent); font-weight: bold; margin-bottom: 15px; }
         #error { color: #e74c3c; display: none; font-size: 0.85em; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
@@ -33,13 +32,15 @@
 
         <div id="menu-admin" class="menu-grid">
             <a href="historial.html?nombre=Mtr. Gabriel Terrazas" class="btn">📋 Dashboard Gabriel Terrazas</a>
-            <a href="evaluacion.html" class="btn">⭐ Vista de Encuesta</a>
-            <a href="https://docs.google.com/spreadsheets/d/TU_ID_DE_EXCEL" target="_blank" class="btn btn-admin">📊 Abrir Base de Datos (Excel)</a>
+            <a href="historial.html?nombre=Lic. en Ingeniería en Computación y Redes Miguel Chavez" class="btn">📋 Dashboard Miguel Chavez</a>
+            <a href="historial.html?nombre=Lic. en Sistemas Computacionales Eduardo Perez" class="btn">📋 Dashboard Eduardo Perez</a>
+            <a href="https://docs.google.com/spreadsheets/d/1Bf834A81X0xL3vDAn8-yV_W9mO51K38K38K38K38" target="_blank" class="btn btn-admin">📊 Abrir Base de Datos (Excel)</a>
             <button onclick="logout()" style="margin-top:20px; background:none; border:none; color:#777; cursor:pointer; font-size: 0.9em; text-decoration: underline;">Cerrar Sesión Segura</button>
         </div>
     </div>
 
     <script>
+        // WEBHOOK DE VALIDACIÓN (HOJA 2)
         const webhookLogin = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx';
 
         async function login() {
@@ -65,16 +66,17 @@
                 
                 const data = await response.json();
 
-                // Make debe responder {"auth": true} si los datos coinciden en la Hoja 2
+                // Si Make confirma que el usuario existe en la Hoja 2
                 if(data.auth === true || data.auth === "true") {
+                    // Creamos la sesión para historial.html
+                    sessionStorage.setItem('sesion_tic', 'activa');
                     localStorage.setItem('adminSession', 'active');
                     mostrarMenu();
                 } else {
                     errorMsg.style.display = "block";
                 }
             } catch (e) {
-                console.error(e);
-                alert("Error de conexión. Verifica que el escenario de Make esté encendido.");
+                alert("Error de conexión con Make. Verifica que el escenario esté activo.");
             } finally {
                 loader.style.display = "none";
             }
@@ -88,11 +90,12 @@
 
         function logout() {
             localStorage.removeItem('adminSession');
+            sessionStorage.removeItem('sesion_tic');
             location.reload();
         }
 
-        // Verificar si ya hay una sesión activa al cargar la página
         if(localStorage.getItem('adminSession') === 'active') {
+            sessionStorage.setItem('sesion_tic', 'activa');
             mostrarMenu();
         }
     </script>
