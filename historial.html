@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <script>
-        // SEGURIDAD: Verifica si pasó por el login
-        if (sessionStorage.getItem('sesion_tic') !== 'activa') {
-            window.location.href = 'index.html';
-        }
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard TIC</title>
@@ -31,18 +25,25 @@
     </div>
 
     <script>
-        // OFUSCACIÓN: Evita que el Webhook sea detectado fácilmente por bots
-        const _base = "https://hook.us2.make.com/";
-        const _path = "g2o6bagpnddob1127nhxqpwc7t6sdadx";
+        // Usamos el Webhook que YA TENÍAS para consultar el historial
+        const webhookConsulta = "https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx";
 
+        // Obtenemos el nombre que viene desde el login de la Hoja 2
         const params = new URLSearchParams(window.location.search);
         const tecnico = params.get('nombre') || "Mtr. Gabriel Terrazas";
         document.getElementById('tecnico-nombre').innerText = tecnico;
 
         async function fetchTickets() {
             try {
-                const res = await fetch(`${_base}${_path}?nombre=${encodeURIComponent(tecnico)}`);
+                // Consultamos el historial con el nombre que validó el login
+                const res = await fetch(`${webhookConsulta}?nombre=${encodeURIComponent(tecnico)}`);
                 const csv = await res.text();
+                
+                // Si el CSV viene vacío o con error
+                if (!csv || csv.includes("No se encontraron")) {
+                    document.getElementById('tabla-body').innerHTML = "No hay tickets asignados para " + tecnico;
+                    return;
+                }
                 renderTable(csv);
             } catch (e) {
                 document.getElementById('tabla-body').innerHTML = "Error al conectar con el servidor.";
@@ -51,28 +52,34 @@
 
         function renderTable(csv) {
             const filas = csv.split('\n');
-            if (filas.length <= 1) {
-                document.getElementById('tabla-body').innerHTML = "No hay tickets asignados.";
-                return;
-            }
-
             let html = '<table><thead><tr><th>ID</th><th>Usuario</th><th>Problema</th><th>Estado</th><th>Acción</th></tr></thead><tbody>';
             
+            let contador = 0;
             filas.forEach(f => {
                 const c = f.split(',');
-                if (c.length >= 10) {
-                    const isConcluido = c[10].trim() === "Concluido";
+                // Verificamos que la fila tenga datos (mínimo el ID en c[0] y el Usuario en c[6])
+                if (c.length >= 7 && c[0].trim() !== "") {
+                    contador++;
+                    const estado = (c[10] || "Sin atender").trim();
+                    const isConcluido = estado === "Concluido" || estado === "Evaluado";
+                    
                     html += `<tr>
                         <td><b>#${c[0]}</b></td>
                         <td>${c[6]}</td>
-                        <td style="max-width:300px">${c[7]}</td>
-                        <td><span class="badge ${isConcluido ? 'badge-concluido' : 'badge-revision'}">${c[10]}</span></td>
+                        <td style="max-width:300px">${c[7] || 'Sin descripción'}</td>
+                        <td><span class="badge ${isConcluido ? 'badge-concluido' : 'badge-revision'}">${estado}</span></td>
                         <td><a href="reporte.html?id=${c[0]}&user=${encodeURIComponent(c[6])}&nombre=${encodeURIComponent(tecnico)}" class="btn-resolver">${isConcluido ? 'Ver Detalle' : 'Resolver'}</a></td>
                     </tr>`;
                 }
             });
+            
             html += '</tbody></table>';
-            document.getElementById('tabla-body').innerHTML = html;
+            
+            if (contador === 0) {
+                document.getElementById('tabla-body').innerHTML = "No hay tickets registrados en el historial.";
+            } else {
+                document.getElementById('tabla-body').innerHTML = html;
+            }
         }
         fetchTickets();
     </script>
