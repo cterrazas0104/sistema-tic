@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Asignar Ticket - SEDIF</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
+        .card { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        .info { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9em; }
+        select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; }
+        button { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Asignar Ticket #<span id="ticket-id"></span></h2>
+        <div class="info">
+            <p><strong>Usuario:</strong> <span id="user-name"></span></p>
+            <p><strong>Ubicación:</strong> <span id="user-loc"></span></p>
+            <p><strong>Problema:</strong> <span id="user-prob"></span></p>
+        </div>
+        
+        <label>Seleccionar Técnico:</label>
+        <select id="tecnico-select">
+            <option value="Mtr. Gabriel Terrazas">Gabriel Terrazas</option>
+            <option value="Lic. en Ingeniería en Computación y Redes Miguel Chavez">Miguel Chavez</option>
+            <option value="Lic. en Sistemas Computacionales Eduardo Perez">Eduardo Perez</option>
+            <option value="Lic. Martin Alejandro Reyes Bocanegra">Alejandro Reyes</option>
+            <option value="Fati">Fati</option>
+        </select>
+        
+        <button onclick="asignar()">Confirmar Asignación</button>
+        <p id="msg" style="display:none; text-align:center; color: var(--accent); font-weight:bold; margin-top:15px;">¡Ticket Asignado!</p>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('ticket-id').innerText = params.get('id');
+        document.getElementById('user-name').innerText = params.get('user');
+        document.getElementById('user-loc').innerText = params.get('loc');
+        document.getElementById('user-prob').innerText = params.get('prob');
+
+        async function asignar() {
+            const btn = document.querySelector('button');
+            const tecnico = document.getElementById('tecnico-select').value;
+            btn.disabled = true;
+            btn.innerText = "Procesando...";
+
+            // Aquí usaremos tu Webhook que ya actualiza el Excel
+            const response = await fetch('https://hook.us2.make.com/fpnd8m9v6at0e987f21', { // Usa tu webhook de actualización
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    idticket: params.get('id'),
+                    tecnico: tecnico,
+                    accion: "AsignarTicket"
+                })
+            });
+
+            if(response.ok) {
+                document.getElementById('msg').style.display = "block";
+                setTimeout(() => window.location.href = "admin.html", 2000);
+            }
+        }
+    </script>
+</body>
+</html>
