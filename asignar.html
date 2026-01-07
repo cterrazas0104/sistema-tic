@@ -13,7 +13,6 @@
         .info p { margin: 5px 0; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); margin-top: 15px; }
         select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; }
-        select { background: white; cursor: pointer; }
         button { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 25px; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
         button:disabled { background: #ccc; cursor: not-allowed; }
@@ -69,8 +68,8 @@
             btn.innerText = "Actualizando Excel...";
 
             try {
-                // WEBHOOK DE TU ESCENARIO 2 (EL DEL ROUTER)
-                const response = await fetch('https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx', { 
+                // USANDO TU URL QUE SÍ FUNCIONÓ (fli21)
+                const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
