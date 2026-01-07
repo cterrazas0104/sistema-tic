@@ -6,16 +6,102 @@
     <title>Centro de Tickets TIC</title>
     <style>
         :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
+        
+        /* Ajuste de contenedor para móvil */
+        .container { 
+            max-width: 1000px; 
+            margin: auto; 
+            background: white; 
+            padding: 15px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+        }
+
+        h2 { 
+            color: var(--primary); 
+            border-bottom: 2px solid var(--accent); 
+            padding-bottom: 10px; 
+            margin-top: 0; 
+            font-size: 1.4em; 
+        }
+
+        /* --- MAGIA PARA MÓVIL: De tabla a Tarjetas --- */
+        @media screen and (max-width: 600px) {
+            table, thead, tbody, th, td, tr { 
+                display: block; 
+            }
+            
+            /* Escondemos el encabezado de la tabla en móvil */
+            thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            
+            tr { 
+                border: 1px solid #eee; 
+                margin-bottom: 15px; 
+                border-radius: 10px;
+                padding: 10px;
+                background: #fdfdfd;
+            }
+            
+            td { 
+                border: none;
+                position: relative;
+                padding-left: 50% !important; 
+                text-align: right;
+                font-size: 0.95em;
+                border-bottom: 1px solid #f9f9f9;
+            }
+            
+            /* Ponemos etiquetas a los datos */
+            td:before { 
+                position: absolute;
+                left: 10px;
+                width: 45%; 
+                padding-right: 10px; 
+                white-space: nowrap;
+                content: attr(data-label);
+                font-weight: bold;
+                text-align: left;
+                color: var(--primary);
+            }
+
+            td:last-child {
+                border-bottom: none;
+                text-align: center;
+                padding-left: 10px !important;
+            }
+
+            .btn-resolver {
+                width: 100%;
+                box-sizing: border-box;
+                margin-top: 10px;
+            }
+        }
+
+        /* Estilos generales de tabla para PC */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #f8f9fa; color: #777; text-align: left; padding: 12px; font-size: 0.85em; text-transform: uppercase; }
         td { padding: 15px; border-bottom: 1px solid #eee; color: #444; }
-        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; }
+        
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; display: inline-block; }
         .status-pendiente { background: #fff4e6; color: #fd7e14; }
         .status-concluido { background: #e6fcf5; color: #099268; }
-        .btn-resolver { color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9em; font-weight: bold; display: inline-block; transition: 0.3s; }
+        
+        .btn-resolver { 
+            color: white; 
+            text-decoration: none; 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            font-size: 0.9em; 
+            font-weight: bold; 
+            display: inline-block; 
+            transition: 0.3s; 
+            text-align: center;
+        }
         .btn-active { background: var(--accent); }
         .btn-view { background: #95a5a6; }
     </style>
@@ -45,14 +131,14 @@
         const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
 
         if (tecnicoNombre) {
-            document.getElementById('saludo').innerText = "Centro de Tickets: " + tecnicoNombre;
+            document.getElementById('saludo').innerText = "Tickets: " + tecnicoNombre;
             cargarTickets();
         }
 
         async function cargarTickets() {
             try {
                 const response = await fetch(webhookURL + "?nombre=" + encodeURIComponent(tecnicoNombre));
-                const tickets = await response.json(); // Ahora leemos JSON, no texto plano
+                const tickets = await response.json();
                 
                 const tableBody = document.getElementById('tabla-body');
                 tableBody.innerHTML = "";
@@ -68,10 +154,12 @@
                     
                     tableBody.innerHTML += `
                         <tr>
-                            <td><b>#${t.id}</b></td>
-                            <td>${t.usuario}</td>
-                            <td>${t.problema}</td>
-                            <td><span class="status-badge ${editable ? 'status-pendiente' : 'status-concluido'}">${est}</span></td>
+                            <td data-label="ID Ticket"><b>#${t.id}</b></td>
+                            <td data-label="Usuario">${t.usuario}</td>
+                            <td data-label="Problema">${t.problema}</td>
+                            <td data-label="Estado">
+                                <span class="status-badge ${editable ? 'status-pendiente' : 'status-concluido'}">${est}</span>
+                            </td>
                             <td>
                                 <a href="reporte.html?id=${t.id}&user=${encodeURIComponent(t.usuario)}&status=${encodeURIComponent(est)}&nombre=${encodeURIComponent(tecnicoNombre)}" 
                                    class="btn-resolver ${editable ? 'btn-active' : 'btn-view'}">
