@@ -31,17 +31,17 @@
         <label for="tecnico-select">Seleccionar Responsable:</label>
         <select id="tecnico-select">
             <optgroup label="Técnicos Individuales">
-                <option value="Mtr. Gabriel Terrazas">Gabriel Terrazas</option>
-                <option value="Lic. en Ingeniería en Computación y Redes Miguel Chavez">Miguel Chavez</option>
-                <option value="Lic. en Sistemas Computacionales Eduardo Perez">Eduardo Perez</option>
-                <option value="Lic. Martin Alejandro Reyes Bocanegra">Alejandro Reyes</option>
-                <option value="Fati">Fati</option>
+                <option value="1">Gabriel Terrazas</option>
+                <option value="2">Miguel Chavez</option>
+                <option value="4">Eduardo Perez</option>
+                <option value="7">Alejandro Reyes</option>
+                <option value="11">Fati</option>
             </optgroup>
             <optgroup label="Parejas / Equipos">
-                <option value="Mtr. Gabriel Terrazas, Lic. en Sistemas Computacionales Eduardo Perez">Gabriel y Eduardo</option>
-                <option value="Lic. en Ingeniería en Computación y Redes Miguel Chavez, Lic. Martin Alejandro Reyes Bocanegra">Miguel y Alejandro</option>
-                <option value="Mtr. Gabriel Terrazas, Lic. en Ingeniería en Computación y Redes Miguel Chavez">Gabriel y Miguel</option>
-                <option value="Lic. en Sistemas Computacionales Eduardo Perez, Lic. Martin Alejandro Reyes Bocanegra">Eduardo y Alejandro</option>
+                <option value="5">Gabriel y Eduardo</option>
+                <option value="7">Alejandro (Sencillo)</option> <option value="10">Miguel y Alejandro</option>
+                <option value="6">Gabriel y Miguel</option>
+                <option value="9">Eduardo y Alejandro</option>
             </optgroup>
         </select>
         
@@ -60,7 +60,7 @@
 
         async function asignar() {
             const btn = document.getElementById('btn-asignar');
-            const tecnico = document.getElementById('tecnico-select').value;
+            const tecnicoID = document.getElementById('tecnico-select').value;
             
             if(!tId) return alert("Error: No se encontró el ID del ticket.");
 
@@ -68,13 +68,13 @@
             btn.innerText = "Actualizando Excel...";
 
             try {
-                // USANDO TU URL QUE SÍ FUNCIONÓ (fli21)
+                // USANDO TU URL fli21
                 const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         ticket: tId,
-                        tecnico: tecnico,
+                        tecnico: tecnicoID, // Ahora envía el NÚMERO
                         accion: "AsignarTicket"
                     })
                 });
