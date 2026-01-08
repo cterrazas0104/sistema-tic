@@ -33,15 +33,17 @@
             <optgroup label="Técnicos Individuales">
                 <option value="1">Gabriel Terrazas</option>
                 <option value="2">Miguel Chavez</option>
-                <option value="4">Eduardo Perez</option>
-                <option value="7">Alejandro Reyes</option>
-                <option value="11">Fati</option>
+                <option value="3">Eduardo Perez</option>
+                <option value="4">Alejandro Reyes</option>
+                <option value="5">Fati</option>
             </optgroup>
             <optgroup label="Parejas / Equipos">
-                <option value="5">Gabriel y Eduardo</option>
-                <option value="7">Alejandro (Sencillo)</option> <option value="10">Miguel y Alejandro</option>
-                <option value="6">Gabriel y Miguel</option>
+                <option value="6">Gabriel y Eduardo</option>
+                <option value="7">Gabriel y Miguel</option>
+                <option value="8">Miguel y Eduardo</option>
                 <option value="9">Eduardo y Alejandro</option>
+                <option value="10">Miguel y Alejandro</option>
+                <option value="11">Gabriel y Alejandro</option>
             </optgroup>
         </select>
         
@@ -68,13 +70,13 @@
             btn.innerText = "Actualizando Excel...";
 
             try {
-                // USANDO TU URL fli21
+                // USANDO TU URL QUE FUNCIONA (fli21)
                 const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         ticket: tId,
-                        tecnico: tecnicoID, // Ahora envía el NÚMERO
+                        tecnico: tecnicoID, 
                         accion: "AsignarTicket"
                     })
                 });
