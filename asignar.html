@@ -12,7 +12,8 @@
         .info { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9em; line-height: 1.6; }
         .info p { margin: 5px 0; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); margin-top: 15px; }
-        select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; }
+        select, textarea, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; font-family: inherit; }
+        textarea { resize: vertical; min-height: 80px; }
         button { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 25px; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
         button:disabled { background: #ccc; cursor: not-allowed; }
@@ -22,6 +23,7 @@
 <body>
     <div class="card">
         <h2>Asignar Ticket #<span id="ticket-id"></span></h2>
+        
         <div class="info">
             <p><strong>Usuario:</strong> <span id="user-name"></span></p>
             <p><strong>Ubicación:</strong> <span id="user-loc"></span></p>
@@ -46,6 +48,9 @@
                 <option value="11">Gabriel y Alejandro</option>
             </optgroup>
         </select>
+
+        <label for="comentarios-atencion">Comentarios para el Técnico (Columna N):</label>
+        <textarea id="comentarios-atencion" placeholder="Ej: Reportarse con la secretaria al llegar o llevar cable de red..."></textarea>
         
         <button id="btn-asignar" onclick="asignar()">Confirmar Asignación</button>
         <p id="msg">¡Ticket Asignado y Estatus Actualizado!</p>
@@ -55,6 +60,7 @@
         const params = new URLSearchParams(window.location.search);
         const tId = params.get('id');
         
+        // Cargar datos en la tarjeta
         document.getElementById('ticket-id').innerText = tId || '---';
         document.getElementById('user-name').innerText = params.get('user') || 'No especificado';
         document.getElementById('user-loc').innerText = params.get('loc') || 'No especificada';
@@ -63,20 +69,22 @@
         async function asignar() {
             const btn = document.getElementById('btn-asignar');
             const tecnicoID = document.getElementById('tecnico-select').value;
+            const comentarios = document.getElementById('comentarios-atencion').value;
             
             if(!tId) return alert("Error: No se encontró el ID del ticket.");
 
             btn.disabled = true;
-            btn.innerText = "Actualizando Excel...";
+            btn.innerText = "Procesando Asignación...";
 
             try {
-                // USANDO TU URL QUE FUNCIONA (fli21)
+                // TU URL DE MAKE fli21
                 const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         ticket: tId,
                         tecnico: tecnicoID, 
+                        comentarios: comentarios, // <--- Nueva variable enviada
                         accion: "AsignarTicket"
                     })
                 });
@@ -90,7 +98,7 @@
                     throw new Error();
                 }
             } catch (error) {
-                alert("Error de comunicación. Asegúrate de que el escenario de Make esté encendido.");
+                alert("Error de comunicación. Revisa tu conexión o el escenario de Make.");
                 btn.disabled = false;
                 btn.innerText = "Confirmar Asignación";
             }
