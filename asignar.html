@@ -57,14 +57,15 @@
     </div>
 
     <script>
+        // Leemos los parámetros de la URL
         const params = new URLSearchParams(window.location.search);
         const tId = params.get('id');
         
-        // Cargar datos en la tarjeta
+        // Cargamos los datos en la tarjeta usando decodeURIComponent para que los textos sean legibles
         document.getElementById('ticket-id').innerText = tId || '---';
-        document.getElementById('user-name').innerText = params.get('user') || 'No especificado';
-        document.getElementById('user-loc').innerText = params.get('loc') || 'No especificada';
-        document.getElementById('user-prob').innerText = params.get('prob') || 'Sin descripción';
+        document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || 'No especificado');
+        document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || 'No especificada');
+        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || 'Sin descripción');
 
         async function asignar() {
             const btn = document.getElementById('btn-asignar');
@@ -73,18 +74,19 @@
             
             if(!tId) return alert("Error: No se encontró el ID del ticket.");
 
+            // Desactivamos el botón para evitar envíos múltiples (los famosos 3 correos)
             btn.disabled = true;
             btn.innerText = "Procesando Asignación...";
 
             try {
-                // TU URL DE MAKE fli21
+                // Envío al Webhook de Make que procesa la asignación
                 const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         ticket: tId,
                         tecnico: tecnicoID, 
-                        comentarios: comentarios, // <--- Nueva variable enviada
+                        comentarios: comentarios,
                         accion: "AsignarTicket"
                     })
                 });
@@ -92,6 +94,7 @@
                 if(response.ok) {
                     document.getElementById('msg').style.display = "block";
                     setTimeout(() => {
+                        // Redirección tras éxito
                         window.location.href = "admin.html";
                     }, 2000);
                 } else {
