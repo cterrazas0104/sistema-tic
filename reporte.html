@@ -48,10 +48,12 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
+        
+        // Aplicamos decodeURIComponent para limpiar los textos que vienen de la URL
         const ticketId = urlParams.get('id') || 'N/A';
-        const nombreUser = urlParams.get('user') || 'Usuario';
-        const estatus = urlParams.get('status') || 'Sin atender';
-        const tecnico = urlParams.get('nombre') || '';
+        const nombreUser = decodeURIComponent(urlParams.get('user') || 'Usuario');
+        const estatus = decodeURIComponent(urlParams.get('status') || 'Sin atender');
+        const tecnico = decodeURIComponent(urlParams.get('nombre') || '');
 
         document.getElementById('disp-id').innerText = ticketId;
         document.getElementById('disp-usuario').innerText = nombreUser;
