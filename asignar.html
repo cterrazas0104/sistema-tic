@@ -11,6 +11,7 @@
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
         .info { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9em; line-height: 1.6; }
         .info p { margin: 5px 0; }
+        .problema-text { font-style: italic; color: #555; display: block; margin-top: 5px; white-space: pre-wrap; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); margin-top: 15px; }
         select, textarea, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; font-family: inherit; }
         textarea { resize: vertical; min-height: 80px; }
@@ -27,7 +28,7 @@
         <div class="info">
             <p><strong>Usuario:</strong> <span id="user-name"></span></p>
             <p><strong>Ubicación:</strong> <span id="user-loc"></span></p>
-            <p><strong>Problema:</strong> <span id="user-prob"></span></p>
+            <p><strong>Problema:</strong> <span id="user-prob" class="problema-text"></span></p>
         </div>
         
         <label for="tecnico-select">Seleccionar Responsable:</label>
@@ -61,20 +62,21 @@
         const params = new URLSearchParams(window.location.search);
         const tId = params.get('id');
         
-        // Cargamos los datos en la tarjeta usando decodeURIComponent para que los textos sean legibles
+        // Cargamos los datos en la tarjeta usando decodeURIComponent
+        // Si el dato no existe en la URL, mostrará el mensaje alternativo
         document.getElementById('ticket-id').innerText = tId || '---';
         document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || 'No especificado');
         document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || 'No especificada');
-        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || 'Sin descripción');
+        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || 'Sin descripción del problema');
 
         async function asignar() {
             const btn = document.getElementById('btn-asignar');
             const tecnicoID = document.getElementById('tecnico-select').value;
             const comentarios = document.getElementById('comentarios-atencion').value;
             
-            if(!tId) return alert("Error: No se encontró el ID del ticket.");
+            if(!tId || tId === '---') return alert("Error: No se encontró el ID del ticket.");
 
-            // Desactivamos el botón para evitar envíos múltiples (los famosos 3 correos)
+            // Desactivamos el botón para evitar envíos múltiples
             btn.disabled = true;
             btn.innerText = "Procesando Asignación...";
 
@@ -94,8 +96,8 @@
                 if(response.ok) {
                     document.getElementById('msg').style.display = "block";
                     setTimeout(() => {
-                        // Redirección tras éxito
-                        window.location.href = "admin.html";
+                        // Redirección tras éxito (Asegúrate de que admin.html existe o cámbialo a historial.html)
+                        window.location.href = "historial.html";
                     }, 2000);
                 } else {
                     throw new Error();
