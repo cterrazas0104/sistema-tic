@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asignar Ticket - SEDIF</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; --warning: #e67e22; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
         .info { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9em; line-height: 1.6; }
         .info p { margin: 5px 0; }
-        .modalidad-badge { background: #e67e22; color: white; padding: 2px 8px; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
         .problema-text { font-style: italic; color: #555; display: block; margin-top: 5px; white-space: pre-wrap; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); margin-top: 15px; }
         select, textarea, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; font-family: inherit; }
+        
+        /* Estilo especial para la decisión del admin */
+        .select-decision { border: 2px solid var(--warning); background: #fffcf9; font-weight: bold; }
+        
         textarea { resize: vertical; min-height: 80px; }
         button { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 25px; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
@@ -29,11 +32,16 @@
         <div class="info">
             <p><strong>Usuario:</strong> <span id="user-name"></span></p>
             <p><strong>Ubicación:</strong> <span id="user-loc"></span></p>
-            <p><strong>Atención Solicitada:</strong> <span id="user-mod" class="modalidad-badge"></span></p>
-            <p><strong>Problema:</strong> <span id="user-prob" class="problema-text"></span></p>
+            <p><strong>Problema reportado:</strong> <span id="user-prob" class="problema-text"></span></p>
         </div>
+
+        <label for="modalidad-final">¿Cómo se debe atender este ticket?</label>
+        <select id="modalidad-final" class="select-decision">
+            <option value="PRESENCIAL">📍 PRESENCIAL (Acudir a sitio)</option>
+            <option value="REMOTO">💻 REMOTO (Llamada / AnyDesk)</option>
+        </select>
         
-        <label for="tecnico-select">Seleccionar Responsable:</label>
+        <label for="tecnico-select">Seleccionar Técnico Responsable:</label>
         <select id="tecnico-select">
             <optgroup label="Técnicos Individuales">
                 <option value="Gabriel Terrazas">Gabriel Terrazas</option>
@@ -52,11 +60,11 @@
             </optgroup>
         </select>
 
-        <label for="comentarios-atencion">Comentarios para el Técnico (Columna N):</label>
-        <textarea id="comentarios-atencion" placeholder="Ej: Reportarse con la secretaria al llegar o llevar cable de red..."></textarea>
+        <label for="comentarios-atencion">Instrucciones adicionales para el técnico:</label>
+        <textarea id="comentarios-atencion" placeholder="Ej: Favor de revisar cableado o contactar por extensión..."></textarea>
         
-        <button id="btn-asignar" onclick="asignar()">Confirmar Asignación</button>
-        <p id="msg">¡Ticket Asignado y Estatus Actualizado!</p>
+        <button id="btn-asignar" onclick="asignar()">Confirmar y Notificar</button>
+        <p id="msg">¡Ticket Asignado con Éxito!</p>
     </div>
 
     <script>
@@ -66,18 +74,18 @@
         document.getElementById('ticket-id').innerText = tId || '---';
         document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || 'No especificado');
         document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || 'No especificada');
-        document.getElementById('user-mod').innerText = decodeURIComponent(params.get('mod') || 'Presencial'); // Default
-        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || 'Sin descripción del problema');
+        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || 'Sin descripción');
 
         async function asignar() {
             const btn = document.getElementById('btn-asignar');
             const tecnicoID = document.getElementById('tecnico-select').value;
+            const modalidadElegida = document.getElementById('modalidad-final').value;
             const comentarios = document.getElementById('comentarios-atencion').value;
             
             if(!tId || tId === '---') return alert("Error: No se encontró el ID del ticket.");
 
             btn.disabled = true;
-            btn.innerText = "Procesando Asignación...";
+            btn.innerText = "Procesando...";
 
             try {
                 const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
@@ -86,6 +94,7 @@
                     body: JSON.stringify({
                         ticket: tId,
                         tecnico: tecnicoID, 
+                        modalidad: modalidadElegida, // ESTA ES TU DECISIÓN (Columna P)
                         comentarios: comentarios,
                         accion: "AsignarTicket"
                     })
@@ -98,7 +107,7 @@
                     }, 2000);
                 } else { throw new Error(); }
             } catch (error) {
-                alert("Error de comunicación.");
+                alert("Error al procesar la asignación.");
                 btn.disabled = false;
                 btn.innerText = "Confirmar Asignación";
             }
