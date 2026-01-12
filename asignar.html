@@ -54,3 +54,55 @@
 
         <label for="comentarios-atencion">Comentarios para el Técnico (Columna N):</label>
         <textarea id="comentarios-atencion" placeholder="Ej: Reportarse con la secretaria al llegar o llevar cable de red..."></textarea>
+        
+        <button id="btn-asignar" onclick="asignar()">Confirmar Asignación</button>
+        <p id="msg">¡Ticket Asignado y Estatus Actualizado!</p>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const tId = params.get('id');
+        
+        document.getElementById('ticket-id').innerText = tId || '---';
+        document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || 'No especificado');
+        document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || 'No especificada');
+        document.getElementById('user-mod').innerText = decodeURIComponent(params.get('mod') || 'Presencial'); // Default
+        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || 'Sin descripción del problema');
+
+        async function asignar() {
+            const btn = document.getElementById('btn-asignar');
+            const tecnicoID = document.getElementById('tecnico-select').value;
+            const comentarios = document.getElementById('comentarios-atencion').value;
+            
+            if(!tId || tId === '---') return alert("Error: No se encontró el ID del ticket.");
+
+            btn.disabled = true;
+            btn.innerText = "Procesando Asignación...";
+
+            try {
+                const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        ticket: tId,
+                        tecnico: tecnicoID, 
+                        comentarios: comentarios,
+                        accion: "AsignarTicket"
+                    })
+                });
+
+                if(response.ok) {
+                    document.getElementById('msg').style.display = "block";
+                    setTimeout(() => {
+                        window.location.href = "historial.html";
+                    }, 2000);
+                } else { throw new Error(); }
+            } catch (error) {
+                alert("Error de comunicación.");
+                btn.disabled = false;
+                btn.innerText = "Confirmar Asignación";
+            }
+        }
+    </script>
+</body>
+</html>
