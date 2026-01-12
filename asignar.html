@@ -5,49 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asignar Ticket - SEDIF</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; --warning: #e67e22; }
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
         .info { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9em; line-height: 1.6; }
-        .info p { margin: 5px 0; }
-        .problema-text { font-style: italic; color: #555; display: block; margin-top: 5px; white-space: pre-wrap; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); margin-top: 15px; }
         select, textarea, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; font-family: inherit; }
-        .select-decision { border: 2px solid var(--warning); background: #fffcf9; font-weight: bold; }
-        textarea { resize: vertical; min-height: 80px; }
+        .select-decision { border: 2px solid #e67e22; background: #fffcf9; font-weight: bold; }
         button { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 25px; }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        #msg { display: none; text-align: center; color: #27ae60; font-weight: bold; margin-top: 15px; border: 1px solid #27ae60; padding: 10px; border-radius: 8px; }
+        button:hover { opacity: 0.9; }
+        #msg { display: none; text-align: center; color: #27ae60; font-weight: bold; margin-top: 15px; padding: 10px; border: 1px solid #27ae60; border-radius: 8px; }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>Asignar Ticket #<span id="ticket-id"></span></h2>
-        
         <div class="info">
             <p><strong>Usuario:</strong> <span id="user-name"></span></p>
             <p><strong>Ubicación:</strong> <span id="user-loc"></span></p>
-            <p><strong>Problema reportado:</strong> <span id="user-prob" class="problema-text"></span></p>
+            <p><strong>Problema:</strong> <span id="user-prob" style="font-style:italic; color:#555;"></span></p>
         </div>
 
-        <label for="modalidad-final">¿Cómo se debe atender este ticket?</label>
+        <label for="modalidad-final">Tipo de Atención (Columna P):</label>
         <select id="modalidad-final" class="select-decision">
-            <option value="Presencial">📍 Presencial (Acudir a sitio)</option>
-            <option value="Remota">💻 Remota (Llamada / AnyDesk)</option>
+            <option value="Presencial">📍 Presencial</option>
+            <option value="Remota">💻 Remota</option>
         </select>
         
-        <label for="tecnico-select">Seleccionar Técnico Responsable:</label>
+        <label for="tecnico-select">Asignar a:</label>
         <select id="tecnico-select">
-            <optgroup label="Técnicos Individuales">
+            <optgroup label="Individual">
                 <option value="1">Gabriel Terrazas</option>
                 <option value="2">Miguel Chavez</option>
                 <option value="3">Eduardo Perez</option>
                 <option value="4">Alejandro Reyes</option>
                 <option value="5">Fati</option>
             </optgroup>
-            <optgroup label="Parejas / Equipos">
+            <optgroup label="Parejas">
                 <option value="6">Gabriel y Eduardo</option>
                 <option value="7">Gabriel y Miguel</option>
                 <option value="8">Miguel y Eduardo</option>
@@ -57,55 +52,39 @@
             </optgroup>
         </select>
 
-        <label for="comentarios-atencion">Instrucciones adicionales para el técnico:</label>
-        <textarea id="comentarios-atencion" placeholder="Ej: Favor de revisar cableado..."></textarea>
+        <label for="comentarios">Instrucciones:</label>
+        <textarea id="comentarios" placeholder="Ej: Favor de reportarse al llegar..."></textarea>
         
-        <button id="btn-asignar" onclick="asignar()">Confirmar y Notificar</button>
-        <p id="msg">¡Ticket Asignado con Éxito!</p>
+        <button id="btn-asignar" onclick="asignar()">Confirmar Asignación</button>
+        <p id="msg">Ticket asignado correctamente.</p>
     </div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
         const tId = params.get('id');
-        
         document.getElementById('ticket-id').innerText = tId || '---';
-        document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || 'No especificado');
-        document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || 'No especificada');
-        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || 'Sin descripción');
+        document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || '---');
+        document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || '---');
+        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || '---');
 
         async function asignar() {
             const btn = document.getElementById('btn-asignar');
-            const tecnicoID = document.getElementById('tecnico-select').value;
-            const modalidadElegida = document.getElementById('modalidad-final').value;
-            const comentarios = document.getElementById('comentarios-atencion').value;
-            
-            if(!tId || tId === '---') return alert("Error: No se encontró el ID del ticket.");
-
             btn.disabled = true;
-            btn.innerText = "Procesando...";
-
             try {
-                const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
+                await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         ticket: tId,
-                        tecnico: tecnicoID, 
-                        modalidad: modalidadElegida,
-                        comentarios: comentarios,
+                        tecnico: document.getElementById('tecnico-select').value, 
+                        modalidad: document.getElementById('modalidad-final').value,
+                        comentarios: document.getElementById('comentarios').value,
                         accion: "AsignarTicket"
                     })
                 });
-
-                if(response.ok) {
-                    document.getElementById('msg').style.display = "block";
-                    setTimeout(() => { window.location.href = "historial.html"; }, 2000);
-                } else { throw new Error(); }
-            } catch (error) {
-                alert("Error al procesar.");
-                btn.disabled = false;
-                btn.innerText = "Confirmar Asignación";
-            }
+                document.getElementById('msg').style.display = "block";
+                setTimeout(() => { window.location.href = "historial.html"; }, 2000);
+            } catch (e) { alert("Error"); btn.disabled = false; }
         }
     </script>
 </body>
