@@ -13,6 +13,7 @@
         .info-box { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid var(--accent); }
         .info-label { font-size: 0.8em; color: #777; font-weight: bold; text-transform: uppercase; }
         .info-value { font-size: 1.1em; color: #333; margin-bottom: 10px; }
+        .modalidad-info { color: #e67e22; font-weight: bold; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; }
         textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-family: inherit; font-size: 1em; box-sizing: border-box; resize: vertical; margin-bottom: 15px; }
         .btn-send { width: 100%; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.3s; }
@@ -30,6 +31,8 @@
             <div id="disp-id" class="info-value">#...</div>
             <div class="info-label">Usuario:</div>
             <div id="disp-usuario" class="info-value">...</div>
+            <div class="info-label">Modalidad:</div>
+            <div id="disp-modalidad" class="info-value modalidad-info">...</div>
             <div class="info-label">Estado Actual:</div>
             <div id="disp-status" class="info-value">...</div>
         </div>
@@ -37,10 +40,8 @@
         <div id="formulario-contenido">
             <label>Descripción de la Solución:</label>
             <textarea id="solucion-texto" rows="5" placeholder="Explica detalladamente qué se realizó..."></textarea>
-
             <label>Comentarios adicionales (Opcional):</label>
             <textarea id="comentarios-tecnico" rows="2" placeholder="Notas internas..."></textarea>
-
             <button id="btn-finalizar" class="btn-send" onclick="enviarReporte()">Finalizar y Avisar a Jefe</button>
         </div>
         <div id="status-msg" style="text-align:center; margin-top:15px; display:none;"></div>
@@ -48,46 +49,40 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        
-        // Aplicamos decodeURIComponent para limpiar los textos que vienen de la URL
         const ticketId = urlParams.get('id') || 'N/A';
         const nombreUser = decodeURIComponent(urlParams.get('user') || 'Usuario');
         const estatus = decodeURIComponent(urlParams.get('status') || 'Sin atender');
         const tecnico = decodeURIComponent(urlParams.get('nombre') || '');
+        const modalidad = decodeURIComponent(urlParams.get('mod') || 'No especificada');
 
         document.getElementById('disp-id').innerText = ticketId;
         document.getElementById('disp-usuario').innerText = nombreUser;
         document.getElementById('disp-status').innerText = estatus;
+        document.getElementById('disp-modalidad').innerText = modalidad;
 
-        // Bloqueo solo en Revision o Concluido
         if (estatus === "Concluido" || estatus === "Revision") {
             document.getElementById('btn-finalizar').style.display = 'none';
             document.getElementById('solucion-texto').disabled = true;
             document.getElementById('comentarios-tecnico').disabled = true;
-            document.getElementById('solucion-texto').placeholder = "Este ticket ya está en revisión o ha sido concluido.";
-            
+            document.getElementById('solucion-texto').placeholder = "Ticket en revisión o concluido.";
             const msg = document.createElement('div');
             msg.className = 'read-only-msg';
-            msg.innerText = "Modo consulta: Este reporte ya fue enviado.";
+            msg.innerText = "Modo consulta: Reporte enviado.";
             document.getElementById('formulario-contenido').appendChild(msg);
         }
 
-        function regresar() {
-            window.location.href = `historial.html?nombre=${encodeURIComponent(tecnico)}`;
-        }
+        function regresar() { window.location.href = `historial.html?nombre=${encodeURIComponent(tecnico)}`; }
 
         async function enviarReporte() {
             const solucion = document.getElementById('solucion-texto').value;
             const comentarios = document.getElementById('comentarios-tecnico').value;
-            const webhookTIC = 'https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21';
-
             if (!solucion) return alert("Por favor, describe la solución.");
 
             document.getElementById('status-msg').style.display = "block";
             document.getElementById('status-msg').innerText = "Enviando reporte...";
 
             try {
-                await fetch(webhookTIC, {
+                await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -98,16 +93,8 @@
                         accion: "RevisionRequerida"
                     })
                 });
-
-                document.getElementById('main-form').innerHTML = `
-                    <h2 style="color:var(--accent)">¡Reporte enviado!</h2>
-                    <p style="text-align:center">Enviado para revisión. Ya puedes volver.</p>
-                    <button class="btn-send" onclick="regresar()">Volver al Inicio</button>
-                `;
-            } catch (error) {
-                alert("Error al enviar.");
-                document.getElementById('status-msg').style.display = "none";
-            }
+                document.getElementById('main-form').innerHTML = `<h2 style="color:var(--accent)">¡Reporte enviado!</h2><button class="btn-send" onclick="regresar()">Volver al Inicio</button>`;
+            } catch (error) { alert("Error al enviar."); }
         }
     </script>
 </body>
