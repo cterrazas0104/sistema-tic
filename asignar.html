@@ -11,6 +11,7 @@
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
         .info { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9em; line-height: 1.6; }
         .info p { margin: 5px 0; }
+        .modalidad-badge { background: #e67e22; color: white; padding: 2px 8px; border-radius: 5px; font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
         .problema-text { font-style: italic; color: #555; display: block; margin-top: 5px; white-space: pre-wrap; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); margin-top: 15px; }
         select, textarea, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; font-family: inherit; }
@@ -28,86 +29,28 @@
         <div class="info">
             <p><strong>Usuario:</strong> <span id="user-name"></span></p>
             <p><strong>Ubicación:</strong> <span id="user-loc"></span></p>
+            <p><strong>Atención Solicitada:</strong> <span id="user-mod" class="modalidad-badge"></span></p>
             <p><strong>Problema:</strong> <span id="user-prob" class="problema-text"></span></p>
         </div>
         
         <label for="tecnico-select">Seleccionar Responsable:</label>
         <select id="tecnico-select">
             <optgroup label="Técnicos Individuales">
-                <option value="1">Gabriel Terrazas</option>
-                <option value="2">Miguel Chavez</option>
-                <option value="3">Eduardo Perez</option>
-                <option value="4">Alejandro Reyes</option>
-                <option value="5">Fati</option>
+                <option value="Gabriel Terrazas">Gabriel Terrazas</option>
+                <option value="Miguel Chavez">Miguel Chavez</option>
+                <option value="Eduardo Perez">Eduardo Perez</option>
+                <option value="Alejandro Reyes">Alejandro Reyes</option>
+                <option value="Fati">Fati</option>
             </optgroup>
             <optgroup label="Parejas / Equipos">
-                <option value="6">Gabriel y Eduardo</option>
-                <option value="7">Gabriel y Miguel</option>
-                <option value="8">Miguel y Eduardo</option>
-                <option value="9">Eduardo y Alejandro</option>
-                <option value="10">Miguel y Alejandro</option>
-                <option value="11">Gabriel y Alejandro</option>
+                <option value="Gabriel y Eduardo">Gabriel y Eduardo</option>
+                <option value="Gabriel y Miguel">Gabriel y Miguel</option>
+                <option value="Miguel y Eduardo">Miguel y Eduardo</option>
+                <option value="Eduardo y Alejandro">Eduardo y Alejandro</option>
+                <option value="Miguel y Alejandro">Miguel y Alejandro</option>
+                <option value="Gabriel y Alejandro">Gabriel y Alejandro</option>
             </optgroup>
         </select>
 
         <label for="comentarios-atencion">Comentarios para el Técnico (Columna N):</label>
         <textarea id="comentarios-atencion" placeholder="Ej: Reportarse con la secretaria al llegar o llevar cable de red..."></textarea>
-        
-        <button id="btn-asignar" onclick="asignar()">Confirmar Asignación</button>
-        <p id="msg">¡Ticket Asignado y Estatus Actualizado!</p>
-    </div>
-
-    <script>
-        // Leemos los parámetros de la URL
-        const params = new URLSearchParams(window.location.search);
-        const tId = params.get('id');
-        
-        // Cargamos los datos en la tarjeta usando decodeURIComponent
-        // Si el dato no existe en la URL, mostrará el mensaje alternativo
-        document.getElementById('ticket-id').innerText = tId || '---';
-        document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || 'No especificado');
-        document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || 'No especificada');
-        document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || 'Sin descripción del problema');
-
-        async function asignar() {
-            const btn = document.getElementById('btn-asignar');
-            const tecnicoID = document.getElementById('tecnico-select').value;
-            const comentarios = document.getElementById('comentarios-atencion').value;
-            
-            if(!tId || tId === '---') return alert("Error: No se encontró el ID del ticket.");
-
-            // Desactivamos el botón para evitar envíos múltiples
-            btn.disabled = true;
-            btn.innerText = "Procesando Asignación...";
-
-            try {
-                // Envío al Webhook de Make que procesa la asignación
-                const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        ticket: tId,
-                        tecnico: tecnicoID, 
-                        comentarios: comentarios,
-                        accion: "AsignarTicket"
-                    })
-                });
-
-                if(response.ok) {
-                    document.getElementById('msg').style.display = "block";
-                    setTimeout(() => {
-                        // Redirección tras éxito (Asegúrate de que admin.html existe o cámbialo a historial.html)
-                        window.location.href = "historial.html";
-                    }, 2000);
-                } else {
-                    throw new Error();
-                }
-            } catch (error) {
-                alert("Error de comunicación. Revisa tu conexión o el escenario de Make.");
-                btn.disabled = false;
-                btn.innerText = "Confirmar Asignación";
-            }
-        }
-    </script>
-</body>
-</html>
