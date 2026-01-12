@@ -14,10 +14,7 @@
         .problema-text { font-style: italic; color: #555; display: block; margin-top: 5px; white-space: pre-wrap; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--primary); margin-top: 15px; }
         select, textarea, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; font-family: inherit; }
-        
-        /* Estilo especial para la decisión del admin */
         .select-decision { border: 2px solid var(--warning); background: #fffcf9; font-weight: bold; }
-        
         textarea { resize: vertical; min-height: 80px; }
         button { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 25px; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
@@ -37,31 +34,31 @@
 
         <label for="modalidad-final">¿Cómo se debe atender este ticket?</label>
         <select id="modalidad-final" class="select-decision">
-            <option value="PRESENCIAL">📍 PRESENCIAL (Acudir a sitio)</option>
-            <option value="REMOTO">💻 REMOTO (Llamada / AnyDesk)</option>
+            <option value="Presencial">📍 Presencial (Acudir a sitio)</option>
+            <option value="Remota">💻 Remota (Llamada / AnyDesk)</option>
         </select>
         
         <label for="tecnico-select">Seleccionar Técnico Responsable:</label>
         <select id="tecnico-select">
             <optgroup label="Técnicos Individuales">
-                <option value="Gabriel Terrazas">Gabriel Terrazas</option>
-                <option value="Miguel Chavez">Miguel Chavez</option>
-                <option value="Eduardo Perez">Eduardo Perez</option>
-                <option value="Alejandro Reyes">Alejandro Reyes</option>
-                <option value="Fati">Fati</option>
+                <option value="1">Gabriel Terrazas</option>
+                <option value="2">Miguel Chavez</option>
+                <option value="3">Eduardo Perez</option>
+                <option value="4">Alejandro Reyes</option>
+                <option value="5">Fati</option>
             </optgroup>
             <optgroup label="Parejas / Equipos">
-                <option value="Gabriel y Eduardo">Gabriel y Eduardo</option>
-                <option value="Gabriel y Miguel">Gabriel y Miguel</option>
-                <option value="Miguel y Eduardo">Miguel y Eduardo</option>
-                <option value="Eduardo y Alejandro">Eduardo y Alejandro</option>
-                <option value="Miguel y Alejandro">Miguel y Alejandro</option>
-                <option value="Gabriel y Alejandro">Gabriel y Alejandro</option>
+                <option value="6">Gabriel y Eduardo</option>
+                <option value="7">Gabriel y Miguel</option>
+                <option value="8">Miguel y Eduardo</option>
+                <option value="9">Eduardo y Alejandro</option>
+                <option value="10">Miguel y Alejandro</option>
+                <option value="11">Gabriel y Alejandro</option>
             </optgroup>
         </select>
 
         <label for="comentarios-atencion">Instrucciones adicionales para el técnico:</label>
-        <textarea id="comentarios-atencion" placeholder="Ej: Favor de revisar cableado o contactar por extensión..."></textarea>
+        <textarea id="comentarios-atencion" placeholder="Ej: Favor de revisar cableado..."></textarea>
         
         <button id="btn-asignar" onclick="asignar()">Confirmar y Notificar</button>
         <p id="msg">¡Ticket Asignado con Éxito!</p>
@@ -94,7 +91,7 @@
                     body: JSON.stringify({
                         ticket: tId,
                         tecnico: tecnicoID, 
-                        modalidad: modalidadElegida, // ESTA ES TU DECISIÓN (Columna P)
+                        modalidad: modalidadElegida,
                         comentarios: comentarios,
                         accion: "AsignarTicket"
                     })
@@ -102,12 +99,10 @@
 
                 if(response.ok) {
                     document.getElementById('msg').style.display = "block";
-                    setTimeout(() => {
-                        window.location.href = "historial.html";
-                    }, 2000);
+                    setTimeout(() => { window.location.href = "historial.html"; }, 2000);
                 } else { throw new Error(); }
             } catch (error) {
-                alert("Error al procesar la asignación.");
+                alert("Error al procesar.");
                 btn.disabled = false;
                 btn.innerText = "Confirmar Asignación";
             }
