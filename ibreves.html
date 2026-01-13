@@ -15,11 +15,11 @@
         
         .row { display: flex; gap: 10px; align-items: flex-end; }
         .row input { flex: 1; }
-        .btn-now { width: auto; background: #95a5a6; color: white; padding: 12px; font-size: 0.8em; margin-top: 0; }
+        .btn-now { width: auto; background: #95a5a6; color: white; padding: 12px; font-size: 0.8em; margin-top: 0; cursor: pointer; border: none; }
 
         button#btn-enviar { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 25px; font-size: 1.1em; }
         button#btn-enviar:hover { opacity: 0.9; }
-        button:disabled { background: #ccc; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
 
         #msg { display: none; text-align: center; color: #27ae60; font-weight: bold; margin-top: 15px; padding: 10px; border: 1px solid #27ae60; border-radius: 8px; }
     </style>
@@ -34,89 +34,29 @@
         <label>Hora Inicio:</label>
         <div class="row">
             <input type="time" id="hora-inicio">
-            <button class="btn-now" onclick="setHora('hora-inicio')">Ahora</button>
+            <button type="button" class="btn-now" onclick="setHora('hora-inicio')">Ahora</button>
         </div>
 
         <label>Hora Fin:</label>
         <div class="row">
             <input type="time" id="hora-fin">
-            <button class="btn-now" onclick="setHora('hora-fin')">Ahora</button>
+            <button type="button" class="btn-now" onclick="setHora('hora-fin')">Ahora</button>
         </div>
 
         <label>Usuario / Solicitante:</label>
-        <input type="text" id="usuario" placeholder="Nombre de quien pidió apoyo">
+        <input type="text" id="usuario" placeholder="¿A quién apoyaste?">
 
         <label>Área:</label>
-        <input type="text" id="area" placeholder="Ej: Recursos Humanos">
+        <input type="text" id="area" placeholder="Ej: Adquisiciones, Finanzas...">
 
         <label>Descripción del Problema:</label>
-        <textarea id="problema" rows="2" placeholder="¿Qué fallaba?"></textarea>
+        <textarea id="problema" rows="2" placeholder="Ej: No imprime, equipo lento..."></textarea>
 
         <label>Descripción del Apoyo:</label>
-        <textarea id="apoyo" rows="2" placeholder="¿Qué solución se dio?"></textarea>
+        <textarea id="apoyo" rows="2" placeholder="¿Qué solución aplicaste?"></textarea>
 
         <label>Atendió:</label>
         <select id="tecnico">
             <option value="Mtr. Gabriel Terrazas">Mtr. Gabriel Terrazas</option>
             <option value="Lic. Miguel Chavez">Lic. Miguel Chavez</option>
-            <option value="Lic. Eduardo Perez">Lic. Eduardo Perez</option>
-            <option value="Lic. Martin Alejandro Reyes Bocanegra">Lic. Alejandro Reyes</option>
-            <option value="Fati">Fati</option>
-        </select>
-
-        <button id="btn-enviar" onclick="enviarIncidencia()">Guardar Incidencia</button>
-        <p id="msg">✅ Guardado correctamente en la hoja.</p>
-    </div>
-
-    <script>
-        // Poner fecha de hoy automáticamente
-        document.getElementById('fecha').valueAsDate = new Date();
-
-        function setHora(id) {
-            const ahora = new Date();
-            const tiempo = ahora.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById(id).value = tiempo;
-        }
-
-        async function enviarIncidencia() {
-            const btn = document.getElementById('btn-enviar');
-            const data = {
-                fecha: document.getElementById('fecha').value,
-                inicio: document.getElementById('hora-inicio').value,
-                fin: document.getElementById('hora-fin').value,
-                usuario: document.getElementById('usuario').value,
-                area: document.getElementById('area').value,
-                problema: document.getElementById('problema').value,
-                apoyo: document.getElementById('apoyo').value,
-                tecnico: document.getElementById('tecnico').value
-            };
-
-            if(!data.usuario || !data.problema) {
-                alert("Por favor llena el usuario y el problema.");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Guardando...";
-
-            try {
-                // REEMPLAZA ES
-                const response = await fetch('https://hook.us2.make.com/90dhlyybacju2978pxmwk49gsvccawy2', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-
-                if(response.ok) {
-                    document.getElementById('msg').style.display = "block";
-                    setTimeout(() => { location.reload(); }, 2000);
-                }
-            } catch (e) {
-                alert("Error al guardar.");
-                btn.disabled = false;
-                btn.innerText = "Guardar Incidencia";
-            }
-        }
-    </script>
-</body>
-</html>
+            
