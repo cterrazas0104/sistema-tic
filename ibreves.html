@@ -59,4 +59,72 @@
         <select id="tecnico">
             <option value="Mtr. Gabriel Terrazas">Mtr. Gabriel Terrazas</option>
             <option value="Lic. Miguel Chavez">Lic. Miguel Chavez</option>
-            
+            <option value="Lic. Eduardo Perez">Lic. Eduardo Perez</option>
+            <option value="Lic. Martin Alejandro Reyes Bocanegra">Lic. Alejandro Reyes</option>
+            <option value="Fati">Fati</option>
+        </select>
+
+        <button id="btn-enviar" onclick="enviarIncidencia()">Guardar en Bitácora</button>
+        <p id="msg">✅ Incidencia guardada con éxito.</p>
+    </div>
+
+    <script>
+        // Poner fecha de hoy por defecto
+        document.getElementById('fecha').valueAsDate = new Date();
+
+        function setHora(id) {
+            const ahora = new Date();
+            const horas = String(ahora.getHours()).padStart(2, '0');
+            const minutos = String(ahora.getMinutes()).padStart(2, '0');
+            document.getElementById(id).value = `${horas}:${minutos}`;
+        }
+
+        async function enviarIncidencia() {
+            const btn = document.getElementById('btn-enviar');
+            const webhookURL = 'https://hook.us2.make.com/90dhlyybacju2978pxmwk49gsvccawy2';
+         
+            const data = {
+                fecha: document.getElementById('fecha').value,
+                inicio: document.getElementById('hora-inicio').value,
+                fin: document.getElementById('hora-fin').value,
+                usuario: document.getElementById('usuario').value,
+                area: document.getElementById('area').value,
+                problema: document.getElementById('problema').value,
+                apoyo: document.getElementById('apoyo').value,
+                tecnico: document.getElementById('tecnico').value
+            };
+
+            // Validación mínima
+            if(!data.usuario || !data.problema || !data.inicio) {
+                alert("Por favor completa Usuario, Problema y Hora de Inicio.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Enviando...";
+
+            try {
+                const response = await fetch(webhookURL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                if(response.ok) {
+                    document.getElementById('msg').style.display = "block";
+                    // Limpiar formulario tras 2 segundos para nueva entrada
+                    setTimeout(() => { 
+                        location.reload(); 
+                    }, 2000);
+                } else {
+                    throw new Error();
+                }
+            } catch (e) {
+                alert("Error al conectar con Make. Revisa tu conexión.");
+                btn.disabled = false;
+                btn.innerText = "Guardar en Bitácora";
+            }
+        }
+    </script>
+</body>
+</html>
