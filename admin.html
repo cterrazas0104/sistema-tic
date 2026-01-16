@@ -5,15 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - SEDIF</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; --warning: #e67e22; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; margin: 0; }
-        .container { max-width: 900px; margin: 40px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+        .container { max-width: 950px; margin: 20px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; text-align: center; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 20px; }
+        
+        /* Estilos de botones */
         .btn { display: block; background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; text-align: center; transition: 0.3s; font-size: 0.9em; border: none; cursor: pointer; }
+        .btn-main { background: var(--warning); color: white; border: 2px solid #d35400; } /* Naranja para llamar la atención */
         .btn-accent { background: var(--accent); }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        .section-title { grid-column: 1 / -1; margin-top: 25px; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .btn-ecala { background: #8e44ad; } /* Morado para diferenciar Ecala */
+        
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        .section-title { grid-column: 1 / -1; margin-top: 30px; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; border-left: 4px solid var(--accent); padding-left: 10px; }
+        
+        .logout-container { margin-top: 50px; text-align: center; }
+        .btn-logout { background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: bold; text-decoration: underline; font-size: 1em; }
     </style>
 </head>
 <body>
@@ -21,9 +31,10 @@
         <h2>Panel de Control Administrador</h2>
         
         <div class="grid">
-            <div class="section-title">Gestión Global</div>
+            <div class="section-title">Gestión de Tickets y Operación</div>
+            <a href="pendientes.html" class="btn btn-main">📩 Tickets Pendientes de Asignación</a>
+            <a href="incidencia_ecala.html" class="btn btn-ecala">📝 Nueva Incidencia Express (Ecala)</a>
             <a href="https://docs.google.com/spreadsheets/d/1I1cTeHiKZ3y2AFmNpZoh1QLQQRX-mwv6PQlxpfXD-nA/edit?gid=0#gid=0" target="_blank" class="btn btn-accent">📊 Base de Datos Completa (Excel)</a>
-            <a href="evaluacion.html?ticket=PRUEBA&tecnico=ADMIN" class="btn btn-accent">⭐ Vista Previa de Encuesta</a>
             
             <div class="section-title">Historiales Individuales</div>
             <a href="historial.html?nombre=Mtr. Gabriel Terrazas" class="btn">📋 Gabriel Terrazas</a>
@@ -31,30 +42,39 @@
             <a href="historial.html?nombre=Lic. Eduardo Perez" class="btn">📋 Eduardo Perez</a>
             <a href="historial.html?nombre=Lic. Martin Alejandro Reyes Bocanegra" class="btn">📋 Alejandro Reyes</a>
             <a href="historial.html?nombre=Fati" class="btn">📋 Fati</a>
-            
-            <div class="section-title">Equipos Combinados</div>
+            <a href="historial.html?nombre=Lic. Luis Carlos" class="btn">📋 Luis Carlos</a>
+
+            <div class="section-title">Equipos: Gabriel, Miguel, Eduardo y Alejandro</div>
             <a href="historial.html?nombre=Mtr. Gabriel - Lic. Eduardo" class="btn">👥 Gabriel - Eduardo</a>
             <a href="historial.html?nombre=Mtr. Gabriel - Lic. Miguel" class="btn">👥 Gabriel - Miguel</a>
             <a href="historial.html?nombre=Lic. Miguel - Lic. Eduardo" class="btn">👥 Miguel - Eduardo</a>
             <a href="historial.html?nombre=Lic. Eduardo - Lic. Alejandro" class="btn">👥 Eduardo - Alejandro</a>
             <a href="historial.html?nombre=Lic. Miguel - Lic. Alejandro" class="btn">👥 Miguel - Alejandro</a>
             <a href="historial.html?nombre=Mtr. Gabriel - Lic. Alejandro" class="btn">👥 Gabriel - Alejandro</a>
+
+            <div class="section-title">Nuevos Equipos con Luis Carlos</div>
+            <a href="historial.html?nombre=Lic. Luis Carlos - Lic. Alejandro" class="btn">👥 Luis Carlos - Alejandro</a>
+            <a href="historial.html?nombre=Lic. Luis Carlos - Lic. Eduardo" class="btn">👥 Luis Carlos - Eduardo</a>
+            <a href="historial.html?nombre=Lic. Luis Carlos - Lic. Miguel" class="btn">👥 Luis Carlos - Miguel</a>
+            <a href="historial.html?nombre=Lic. Luis Carlos - Mtr. Gabriel" class="btn">👥 Luis Carlos - Gabriel</a>
         </div>
 
-        <div style="margin-top: 40px; text-align: center;">
-            <button onclick="logout()" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-weight:bold; text-decoration: underline;">Cerrar Sesión de Administrador</button>
+        <div class="logout-container">
+            <button onclick="logout()" class="btn-logout">Cerrar Sesión de Administrador</button>
         </div>
     </div>
 
     <script>
-        // SEGURIDAD: Solo permite estar aquí si te logueaste como administrador
+        // SEGURIDAD: Solo permite estar aquí si la sesión de admin está activa
         if(localStorage.getItem('adminSession') !== 'active') {
             window.location.href = "index.html";
         }
 
         function logout() {
-            localStorage.removeItem('adminSession');
-            window.location.href = "index.html";
+            if(confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+                localStorage.removeItem('adminSession');
+                window.location.href = "index.html";
+            }
         }
     </script>
 </body>
