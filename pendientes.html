@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets por Asignar - SEDIF</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #f8f9fa; text-align: left; padding: 12px; font-size: 0.85em; color: #777; }
+        td { padding: 15px; border-bottom: 1px solid #eee; }
+        .btn-asignar { background: var(--accent); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85em; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: var(--primary); text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="admin.html" class="back-link">← Volver al Panel</a>
+        <h2>Tickets Pendientes de Asignación</h2>
+        <div id="lista-pendientes">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Problema</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-body">
+                    <tr><td colspan="4" style="text-align:center;">Cargando tickets...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // WEBHOOK DE MAKE QUE FILTRA POR TÉCNICO VACÍO
+        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; // Usa el mismo del historial pero sin nombre
+
+        async function cargarPendientes() {
+            try {
+                // Pedimos tickets donde el técnico sea "Sin Asignar" o vacío
+                const response = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
+                const tickets = await response.json();
+                
+                const tableBody = document.getElementById('tabla-body');
+                tableBody.innerHTML = "";
+
+                if (!tickets || tickets.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">🎉 No hay tickets pendientes de asignar.</td></tr>';
+                    return;
+                }
+
+                tickets.forEach(t => {
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td><b>#${t.id}</b></td>
+                            <td>${t.usuario}</td>
+                            <td>${t.problema}</td>
+                            <td>
+                                <a href="asignar.html?id=${t.id}&user=${encodeURIComponent(t.usuario)}&loc=${encodeURIComponent(t.ubicacion)}&prob=${encodeURIComponent(t.problema)}" class="btn-asignar">ASIGNAR</a>
+                            </td>
+                        </tr>`;
+                });
+            } catch (e) {
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center;">Error al conectar con Make.</td></tr>';
+            }
+        }
+        cargarPendientes();
+    </script>
+</body>
+</html>
