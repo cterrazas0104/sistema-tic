@@ -14,74 +14,60 @@
         td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.9em; }
         .dept-tag { color: #7f8c8d; font-size: 0.85em; display: block; margin-top: 4px; font-style: italic; }
         .btn-asignar { background: var(--accent); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85em; display: inline-block; }
-        .back-link { display: inline-block; margin-bottom: 15px; color: var(--primary); text-decoration: none; font-weight: bold; }
-        
-        @media screen and (max-width: 600px) {
-            table, thead, tbody, th, td, tr { display: block; }
-            thead tr { position: absolute; top: -9999px; left: -9999px; }
-            tr { border: 1px solid #eee; margin-bottom: 15px; border-radius: 10px; padding: 10px; }
-            td { border: none; position: relative; padding-left: 50% !important; text-align: right; }
-            td:before { position: absolute; left: 10px; width: 45%; padding-right: 10px; white-space: nowrap; content: attr(data-label); font-weight: bold; text-align: left; }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="admin.html" class="back-link">← Volver al Panel</a>
+        <a href="admin.html" style="text-decoration:none; font-weight:bold; color:var(--primary);">← Volver al Panel</a>
         <h2>Tickets Pendientes de Asignación</h2>
-        <div id="lista-pendientes">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Usuario / Depto</th>
-                        <th>Problema</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-body">
-                    <tr><td colspan="4" style="text-align:center;">Cargando tickets...</td></tr>
-                </tbody>
-            </table>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario / Depto</th>
+                    <th>Problema</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-body">
+                <tr><td colspan="4" style="text-align:center;">Cargando tickets...</td></tr>
+            </tbody>
+        </table>
     </div>
 
     <script>
-        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
-
-        async function cargarPendientes() {
+        async function cargar() {
+            const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
             try {
-                // Pedimos tickets con el parámetro especial que configuramos en el filtro de Make
-                const response = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
-                const tickets = await response.json();
-                
-                const tableBody = document.getElementById('tabla-body');
-                tableBody.innerHTML = "";
+                const res = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
+                const data = await res.json();
+                const body = document.getElementById('tabla-body');
+                body.innerHTML = "";
 
-                if (!tickets || tickets.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">🎉 No hay tickets pendientes de asignar.</td></tr>';
+                if (!data || data.length === 0) {
+                    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">🎉 No hay tickets pendientes.</td></tr>';
                     return;
                 }
 
-                tickets.forEach(t => {
-                    tableBody.innerHTML += `
+                data.forEach(t => {
+                    body.innerHTML += `
                         <tr>
-                            <td data-label="ID"><b>#${t.id}</b></td>
-                            <td data-label="Usuario">
+                            <td><b>#${t.id}</b></td>
+                            <td>
                                 <strong>${t.usuario}</strong>
                                 <span class="dept-tag">${t.departamento || 'Sin departamento'}</span>
                             </td>
-                            <td data-label="Problema">${t.problema}</td>
-                            <td data-label="Acción">
+                            <td>${t.problema}</td>
+                            <td>
                                 <a href="asignar.html?id=${t.id}&user=${encodeURIComponent(t.usuario)}&loc=${encodeURIComponent(t.ubicacion || 'Ecala')}&prob=${encodeURIComponent(t.problema)}" class="btn-asignar">ASIGNAR</a>
                             </td>
                         </tr>`;
                 });
             } catch (e) {
-                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:red;">Error al conectar con el servidor. Verifica la configuración de Make.</td></tr>';
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center;">Error de conexión.</td></tr>';
             }
         }
-        cargarPendientes();
+        cargar();
     </script>
 </body>
 </html>
