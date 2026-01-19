@@ -36,38 +36,42 @@
     </div>
 
     <script>
-        async function cargar() {
-            const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
-            try {
-                const res = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
-                const data = await res.json();
-                const body = document.getElementById('tabla-body');
-                body.innerHTML = "";
+        <script>
+    async function cargar() {
+        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
+        try {
+            const res = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
+            const data = await res.json();
+            const body = document.getElementById('tabla-body');
+            body.innerHTML = "";
 
-                if (!data || data.length === 0) {
-                    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">🎉 No hay tickets pendientes.</td></tr>';
-                    return;
-                }
+            // Filtramos en el navegador para solo mostrar los que tienen ID real
+            const ticketsReales = data.filter(t => t.ID && t.ID !== "");
 
-                data.forEach(t => {
-                    body.innerHTML += `
-                        <tr>
-                            <td><b>#${t.id}</b></td>
-                            <td>
-                                <strong>${t.usuario}</strong>
-                                <span class="dept-tag">${t.departamento || 'Sin departamento'}</span>
-                            </td>
-                            <td>${t.problema}</td>
-                            <td>
-                                <a href="asignar.html?id=${t.id}&user=${encodeURIComponent(t.usuario)}&loc=${encodeURIComponent(t.ubicacion || 'Ecala')}&prob=${encodeURIComponent(t.problema)}" class="btn-asignar">ASIGNAR</a>
-                            </td>
-                        </tr>`;
-                });
-            } catch (e) {
-                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center;">Error de conexión.</td></tr>';
+            if (ticketsReales.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">🎉 No hay tickets pendientes.</td></tr>';
+                return;
             }
+
+            ticketsReales.forEach(t => {
+                body.innerHTML += `
+                    <tr>
+                        <td><b>#${t.ID}</b></td>
+                        <td>
+                            <strong>${t.Usuario || 'N/A'}</strong>
+                            <span style="color:gray; font-size:0.8em; display:block; font-style:italic;">${t.departamento || ''}</span>
+                        </td>
+                        <td>${t.Problema || ''}</td>
+                        <td>
+                            <a href="asignar.html?id=${t.ID}&user=${encodeURIComponent(t.Usuario)}&loc=${encodeURIComponent(t.ubicacion || 'Ecala')}&prob=${encodeURIComponent(t.Problema)}" class="btn-asignar">ASIGNAR</a>
+                        </td>
+                    </tr>`;
+            });
+        } catch (e) {
+            document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center;">Error al cargar datos. Verifica Make.</td></tr>';
         }
-        cargar();
-    </script>
+    }
+    cargar();
+</script>
 </body>
 </html>
