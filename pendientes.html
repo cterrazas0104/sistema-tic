@@ -7,13 +7,22 @@
     <style>
         :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #f8f9fa; text-align: left; padding: 12px; font-size: 0.85em; color: #777; }
-        td { padding: 15px; border-bottom: 1px solid #eee; }
-        .btn-asignar { background: var(--accent); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85em; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        .dept-tag { color: #7f8c8d; font-size: 0.85em; display: block; margin-top: 4px; font-style: italic; }
+        .btn-asignar { background: var(--accent); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85em; display: inline-block; }
         .back-link { display: inline-block; margin-bottom: 15px; color: var(--primary); text-decoration: none; font-weight: bold; }
+        
+        @media screen and (max-width: 600px) {
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; }
+            tr { border: 1px solid #eee; margin-bottom: 15px; border-radius: 10px; padding: 10px; }
+            td { border: none; position: relative; padding-left: 50% !important; text-align: right; }
+            td:before { position: absolute; left: 10px; width: 45%; padding-right: 10px; white-space: nowrap; content: attr(data-label); font-weight: bold; text-align: left; }
+        }
     </style>
 </head>
 <body>
@@ -25,7 +34,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Usuario</th>
+                        <th>Usuario / Depto</th>
                         <th>Problema</th>
                         <th>Acción</th>
                     </tr>
@@ -38,12 +47,11 @@
     </div>
 
     <script>
-        // WEBHOOK DE MAKE QUE FILTRA POR TÉCNICO VACÍO
-        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; // Usa el mismo del historial pero sin nombre
+        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
 
         async function cargarPendientes() {
             try {
-                // Pedimos tickets donde el técnico sea "Sin Asignar" o vacío
+                // Pedimos tickets con el parámetro especial que configuramos en el filtro de Make
                 const response = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
                 const tickets = await response.json();
                 
@@ -58,16 +66,19 @@
                 tickets.forEach(t => {
                     tableBody.innerHTML += `
                         <tr>
-                            <td><b>#${t.id}</b></td>
-                            <td>${t.usuario}</td>
-                            <td>${t.problema}</td>
-                            <td>
-                                <a href="asignar.html?id=${t.id}&user=${encodeURIComponent(t.usuario)}&loc=${encodeURIComponent(t.ubicacion)}&prob=${encodeURIComponent(t.problema)}" class="btn-asignar">ASIGNAR</a>
+                            <td data-label="ID"><b>#${t.id}</b></td>
+                            <td data-label="Usuario">
+                                <strong>${t.usuario}</strong>
+                                <span class="dept-tag">${t.departamento || 'Sin departamento'}</span>
+                            </td>
+                            <td data-label="Problema">${t.problema}</td>
+                            <td data-label="Acción">
+                                <a href="asignar.html?id=${t.id}&user=${encodeURIComponent(t.usuario)}&loc=${encodeURIComponent(t.ubicacion || 'Ecala')}&prob=${encodeURIComponent(t.problema)}" class="btn-asignar">ASIGNAR</a>
                             </td>
                         </tr>`;
                 });
             } catch (e) {
-                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center;">Error al conectar con Make.</td></tr>';
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:red;">Error al conectar con el servidor. Verifica la configuración de Make.</td></tr>';
             }
         }
         cargarPendientes();
