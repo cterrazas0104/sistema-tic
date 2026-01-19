@@ -36,42 +36,42 @@
     </div>
 
     <script>
-        <script>
-    async function cargar() {
-        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
-        try {
-            const res = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
-            const data = await res.json();
-            const body = document.getElementById('tabla-body');
-            body.innerHTML = "";
+        async function cargar() {
+            const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
+            try {
+                const res = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
+                const data = await res.json();
+                const body = document.getElementById('tabla-body');
+                body.innerHTML = "";
 
-            // Filtramos en el navegador para solo mostrar los que tienen ID real
-            const ticketsReales = data.filter(t => t.ID && t.ID !== "");
+                // Filtramos los que vienen vacíos (empty) o nulos
+                const ticketsReales = data.filter(t => t.ID && t.ID !== "empty" && t.ID !== "");
 
-            if (ticketsReales.length === 0) {
-                body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">🎉 No hay tickets pendientes.</td></tr>';
-                return;
+                if (ticketsReales.length === 0) {
+                    body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">🎉 No hay tickets pendientes por asignar.</td></tr>';
+                    return;
+                }
+
+                ticketsReales.forEach(t => {
+                    body.innerHTML += `
+                        <tr>
+                            <td><b>#${t.ID}</b></td>
+                            <td>
+                                <strong>${t.Usuario || 'N/A'}</strong>
+                                <span class="dept-tag">${t.departamento || ''}</span>
+                            </td>
+                            <td>${t.Problema || ''}</td>
+                            <td>
+                                <a href="asignar.html?id=${t.ID}&user=${encodeURIComponent(t.Usuario)}&loc=${encodeURIComponent(t.ubicacion || 'Ecala')}&prob=${encodeURIComponent(t.Problema)}" class="btn-asignar">ASIGNAR</a>
+                            </td>
+                        </tr>`;
+                });
+            } catch (e) {
+                console.error("Error cargando tickets:", e);
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error al cargar datos. Verifica la conexión.</td></tr>';
             }
-
-            ticketsReales.forEach(t => {
-                body.innerHTML += `
-                    <tr>
-                        <td><b>#${t.ID}</b></td>
-                        <td>
-                            <strong>${t.Usuario || 'N/A'}</strong>
-                            <span style="color:gray; font-size:0.8em; display:block; font-style:italic;">${t.departamento || ''}</span>
-                        </td>
-                        <td>${t.Problema || ''}</td>
-                        <td>
-                            <a href="asignar.html?id=${t.ID}&user=${encodeURIComponent(t.Usuario)}&loc=${encodeURIComponent(t.ubicacion || 'Ecala')}&prob=${encodeURIComponent(t.Problema)}" class="btn-asignar">ASIGNAR</a>
-                        </td>
-                    </tr>`;
-            });
-        } catch (e) {
-            document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center;">Error al cargar datos. Verifica Make.</td></tr>';
         }
-    }
-    cargar();
-</script>
+        cargar();
+    </script>
 </body>
 </html>
