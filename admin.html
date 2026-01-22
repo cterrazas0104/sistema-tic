@@ -9,26 +9,20 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; margin: 0; }
         .container { max-width: 1100px; margin: 20px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; text-align: center; }
-        
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 20px; }
-        
-        .btn { display: block; background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; text-align: center; transition: 0.3s; font-size: 0.85em; border: none; cursor: pointer; }
+        .btn { display: block; background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; text-align: center; transition: 0.3s; font-size: 0.85em; border: none; }
         .btn-main { background: var(--warning); color: white; border: 2px solid #d35400; } 
         .btn-accent { background: var(--accent); }
         .btn-ecala { background: #8e44ad; } 
-        
         .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        
         .section-title { grid-column: 1 / -1; margin-top: 30px; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; border-left: 4px solid var(--accent); padding-left: 10px; }
-        
         .monitor-container { margin-top: 30px; overflow-x: auto; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 15px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
         th { background: #f8f9fa; padding: 12px; text-align: left; color: #666; border-bottom: 2px solid #eee; }
-        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        .btn-re { background: var(--warning); color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.75em; font-weight: bold; display: inline-block; }
-
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .btn-re { background: var(--warning); color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.75em; font-weight: bold; }
         .logout-container { margin-top: 50px; text-align: center; }
-        .btn-logout { background: none; border: none; color: var(--danger); cursor: pointer; font-weight: bold; text-decoration: underline; font-size: 1em; }
+        .btn-logout { background: none; border: none; color: var(--danger); cursor: pointer; font-weight: bold; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -87,36 +81,16 @@
     </div>
 
     <script>
-        // SEGURIDAD
-        if(localStorage.getItem('adminSession') !== 'active') {
-            window.location.href = "index.html";
-        }
+        if(localStorage.getItem('adminSession') !== 'active') { window.location.href = "index.html"; }
+        function logout() { if(confirm("¿Estás seguro?")) { localStorage.removeItem('adminSession'); window.location.href = "index.html"; } }
 
-        function logout() {
-            if(confirm("¿Estás seguro de que deseas cerrar sesión?")) {
-                localStorage.removeItem('adminSession');
-                window.location.href = "index.html";
-            }
-        }
-
-        // TRADUCTOR COMPLETO DE ID A NOMBRE (Basado en tu Hoja 3)
         const diccionarioTecnicos = {
-            "1": "Mtr. Gabriel Terrazas",
-            "2": "Lic. Miguel Chavez",
-            "3": "Lic. Eduardo Perez",
-            "4": "Lic. Martin Alejandro Reyes Bocanegra",
-            "5": "Fati",
-            "6": "Mtr. Gabriel - Lic. Eduardo",
-            "7": "Mtr. Gabriel - Lic. Miguel",
-            "8": "Lic. Miguel - Lic. Eduardo",
-            "9": "Lic. Eduardo - Lic. Alejandro",
-            "10": "Lic. Miguel - Lic. Alejandro",
-            "11": "Mtr. Gabriel - Lic. Alejandro",
-            "12": "Lic. Luis Carlos",
-            "13": "Lic. Luis Carlos - Lic. Alejandro",
-            "14": "Lic. Luis Carlos - Lic. Eduardo",
-            "15": "Lic. Luis Carlos - Lic. Miguel",
-            "16": "Lic. Luis Carlos - Mtr. Gabriel"
+            "1": "Mtr. Gabriel Terrazas", "2": "Lic. Miguel Chavez", "3": "Lic. Eduardo Perez",
+            "4": "Lic. Martin Alejandro Reyes Bocanegra", "5": "Fati", "6": "Mtr. Gabriel - Lic. Eduardo",
+            "7": "Mtr. Gabriel - Lic. Miguel", "8": "Lic. Miguel - Lic. Eduardo", "9": "Lic. Eduardo - Lic. Alejandro",
+            "10": "Lic. Miguel - Lic. Alejandro", "11": "Mtr. Gabriel - Lic. Alejandro", "12": "Lic. Luis Carlos",
+            "13": "Lic. Luis Carlos - Lic. Alejandro", "14": "Lic. Luis Carlos - Lic. Eduardo",
+            "15": "Lic. Luis Carlos - Lic. Miguel", "16": "Lic. Luis Carlos - Mtr. Gabriel"
         };
 
         async function cargarMonitor() {
@@ -127,37 +101,29 @@
                 const body = document.getElementById('monitor-body');
                 body.innerHTML = "";
 
-                if (!data || data.length === 0) {
-                    body.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px;'>No hay tickets asignados recientemente.</td></tr>";
-                    return;
-                }
-
                 data.forEach(t => {
                     const tid = t.id || t.ID || 'S/N';
                     const tuser = t.usuario || t.Usuario || 'N/A';
                     const tprob = t.problema || t.Problema || '';
                     
-                    // Convertimos el número del técnico al nombre real usando el diccionario
-                    const idBruto = String(t.tecnico || t.Tecnico);
-                    const ttec = diccionarioTecnicos[idBruto] || idBruto || 'Sin asignar';
+                    // IMPORTANTE: idTecnico es el NÚMERO (1, 9, 16) para tu Webhook
+                    const idTecnico = String(t.tecnico || t.Tecnico || '9');
+                    // nombreParaTabla es el TEXTO para que TÚ lo leas bien
+                    const nombreParaTabla = diccionarioTecnicos[idTecnico] || idTecnico;
 
                     body.innerHTML += `
                         <tr>
                             <td><b>#${tid}</b></td>
-                            <td><span style="color:#2c3e50; font-weight:500;">${ttec}</span></td>
+                            <td>${nombreParaTabla}</td>
                             <td>${tuser}</td>
                             <td>
-                                <a href="reasignar.html?id=${tid}&nombreActual=${encodeURIComponent(ttec)}&user=${encodeURIComponent(tuser)}&prob=${encodeURIComponent(tprob)}" 
+                                <a href="reasignar.html?id=${tid}&nombreActual=${encodeURIComponent(idTecnico)}&user=${encodeURIComponent(tuser)}&prob=${encodeURIComponent(tprob)}" 
                                    class="btn-re">REASIGNAR</a>
                             </td>
                         </tr>`;
                 });
-            } catch (e) {
-                console.error("Error en monitor:", e);
-                document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Error de conexión con el servidor.</td></tr>";
-            }
+            } catch (e) { document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4'>Error de conexión.</td></tr>"; }
         }
-        
         cargarMonitor();
     </script>
 </body>
