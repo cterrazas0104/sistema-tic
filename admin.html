@@ -5,25 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - SEDIF</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; --warning: #e67e22; }
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; --warning: #e67e22; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; margin: 0; }
-        .container { max-width: 950px; margin: 20px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: 20px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; text-align: center; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-top: 20px; }
         
         /* Estilos de botones */
         .btn { display: block; background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; text-align: center; transition: 0.3s; font-size: 0.9em; border: none; cursor: pointer; }
-        .btn-main { background: var(--warning); color: white; border: 2px solid #d35400; } /* Naranja para llamar la atención */
+        .btn-main { background: var(--warning); color: white; border: 2px solid #d35400; } 
         .btn-accent { background: var(--accent); }
-        .btn-ecala { background: #8e44ad; } /* Morado para diferenciar Ecala */
+        .btn-ecala { background: #8e44ad; } 
         
         .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         
         .section-title { grid-column: 1 / -1; margin-top: 30px; color: #7f8c8d; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; border-left: 4px solid var(--accent); padding-left: 10px; }
         
+        /* Tabla de Monitoreo Rápido */
+        .monitor-container { margin-top: 30px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        th { background: #f8f9fa; padding: 10px; text-align: left; color: #666; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        .btn-re { background: var(--warning); color: white; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.8em; font-weight: bold; }
+
         .logout-container { margin-top: 50px; text-align: center; }
-        .btn-logout { background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: bold; text-decoration: underline; font-size: 1em; }
+        .btn-logout { background: none; border: none; color: var(--danger); cursor: pointer; font-weight: bold; text-decoration: underline; font-size: 1em; }
     </style>
 </head>
 <body>
@@ -36,6 +43,24 @@
             <a href="ibreves.html" class="btn btn-ecala">📝 Nueva Incidencia Express</a>
             <a href="https://docs.google.com/spreadsheets/d/1I1cTeHiKZ3y2AFmNpZoh1QLQQRX-mwv6PQlxpfXD-nA/edit?gid=0#gid=0" target="_blank" class="btn btn-accent">📊 Base de Datos Completa (Excel)</a>
             
+            <div class="section-title">Monitoreo de Tickets Asignados (Reasignación)</div>
+            <div class="monitor-container" style="grid-column: 1 / -1;">
+                <p style="font-size: 0.8em; color: #666; margin-bottom: 10px;">* Aquí puedes ver los últimos tickets y moverlos si el técnico no responde.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Técnico Actual</th>
+                            <th>Usuario</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monitor-body">
+                        <tr><td colspan="4" style="text-align:center;">Cargando tickets activos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="section-title">Historiales Individuales</div>
             <a href="historial.html?nombre=Mtr. Gabriel Terrazas" class="btn">📋 Gabriel Terrazas</a>
             <a href="historial.html?nombre=Lic. Miguel Chavez" class="btn">📋 Miguel Chavez</a>
@@ -65,7 +90,7 @@
     </div>
 
     <script>
-        // SEGURIDAD: Solo permite estar aquí si la sesión de admin está activa
+        // SEGURIDAD
         if(localStorage.getItem('adminSession') !== 'active') {
             window.location.href = "index.html";
         }
@@ -76,6 +101,43 @@
                 window.location.href = "index.html";
             }
         }
+
+        // FUNCIÓN PARA CARGAR TICKETS RECIENTES Y PERMITIR REASIGNAR
+        async function cargarMonitor() {
+            // Usamos tu webhook de historial pero pidiendo "TODOS" los asignados
+            const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
+            try {
+                const res = await fetch(webhookURL);
+                const tickets = await res.json();
+                const body = document.getElementById('monitor-body');
+                body.innerHTML = "";
+
+                // Solo mostramos los que tienen técnico (excluimos vacíos)
+                const asignados = tickets.filter(t => t.id && t.usuario);
+
+                if(asignados.length === 0) {
+                    body.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No hay tickets asignados recientemente.</td></tr>";
+                    return;
+                }
+
+                // Mostramos los últimos 5 para no saturar
+                asignados.slice(0, 8).forEach(t => {
+                    body.innerHTML += `
+                        <tr>
+                            <td><b>#${t.id}</b></td>
+                            <td>${t.tecnico || 'Asignado'}</td>
+                            <td>${t.usuario}</td>
+                            <td>
+                                <a href="reasignar.html?id=${t.id}&nombreActual=${encodeURIComponent(t.tecnico || '')}&user=${encodeURIComponent(t.usuario)}&prob=${encodeURIComponent(t.problema || '')}" class="btn-re">REASIGNAR</a>
+                            </td>
+                        </tr>`;
+                });
+            } catch (e) {
+                document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center;'>Error al cargar monitor.</td></tr>";
+            }
+        }
+        
+        cargarMonitor();
     </script>
 </body>
 </html>
