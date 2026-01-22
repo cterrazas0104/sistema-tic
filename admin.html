@@ -81,8 +81,15 @@
     </div>
 
     <script>
+        // SEGURIDAD
         if(localStorage.getItem('adminSession') !== 'active') { window.location.href = "index.html"; }
-        function logout() { if(confirm("¿Estás seguro?")) { localStorage.removeItem('adminSession'); window.location.href = "index.html"; } }
+        
+        function logout() { 
+            if(confirm("¿Estás seguro?")) { 
+                localStorage.removeItem('adminSession'); 
+                window.location.href = "index.html"; 
+            } 
+        }
 
         const diccionarioTecnicos = {
             "1": "Mtr. Gabriel Terrazas", "2": "Lic. Miguel Chavez", "3": "Lic. Eduardo Perez",
@@ -93,51 +100,48 @@
             "15": "Lic. Luis Carlos - Lic. Miguel", "16": "Lic. Luis Carlos - Mtr. Gabriel"
         };
 
-       async function cargarMonitor() {
+        async function cargarMonitor() {
+            const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
+            try {
+                const res = await fetch(webhookURL);
+                const rawData = await res.text(); 
+                const data = JSON.parse(rawData.trim()); 
+                
+                const body = document.getElementById('monitor-body');
+                body.innerHTML = "";
 
-           async function cargarMonitor() {
-    const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
-    try {
-        const res = await fetch(webhookURL);
-        const rawData = await res.text(); // Leemos como texto primero
-        const data = JSON.parse(rawData.trim()); // Limpiamos espacios y convertimos a JSON
-        
-        const body = document.getElementById('monitor-body');
-        body.innerHTML = "";
+                if (!data || !Array.isArray(data) || data.length === 0) {
+                    body.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px;'>No hay tickets asignados recientemente.</td></tr>";
+                    return;
+                }
 
-        if (!data || !Array.isArray(data) || data.length === 0) {
-            body.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px;'>No hay tickets asignados recientemente.</td></tr>";
-            return;
+                let totalHtml = "";
+                data.forEach(t => {
+                    const tid = t.id || t.ID || t.idticket || 'S/N';
+                    const tuser = t.usuario || t.Usuario || 'N/A';
+                    const tprob = t.problema || t.Problema || '';
+                    const ttec_id = String(t.tecnico || t.Tecnico || '9');
+                    
+                    const nombreParaTabla = diccionarioTecnicos[ttec_id] || ttec_id;
+
+                    totalHtml += `
+                        <tr>
+                            <td><b>#${tid}</b></td>
+                            <td><span style="color:#2c3e50; font-weight:bold;">${nombreParaTabla}</span></td>
+                            <td>${tuser}</td>
+                            <td>
+                                <a href="reasignar.html?id=${tid}&nombreActual=${encodeURIComponent(ttec_id)}&user=${encodeURIComponent(tuser)}&prob=${encodeURIComponent(tprob)}" 
+                                   class="btn-re">REASIGNAR</a>
+                            </td>
+                        </tr>`;
+                });
+                body.innerHTML = totalHtml;
+
+            } catch (e) { 
+                console.error("Error cargando monitor:", e);
+                document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Error de datos. Revisa la consola (F12).</td></tr>"; 
+            }
         }
-
-        let totalHtml = "";
-        data.forEach(t => {
-            // Buscamos las llaves sin importar espacios o mayúsculas
-            const tid = t.id || t.ID || t.idticket || 'S/N';
-            const tuser = t.usuario || t.Usuario || 'N/A';
-            const tprob = t.problema || t.Problema || '';
-            const ttec_id = String(t.tecnico || t.Tecnico || '9');
-            
-            const nombreParaTabla = diccionarioTecnicos[ttec_id] || ttec_id;
-
-            totalHtml += `
-                <tr>
-                    <td><b>#${tid}</b></td>
-                    <td><span style="color:#2c3e50; font-weight:bold;">${nombreParaTabla}</span></td>
-                    <td>${tuser}</td>
-                    <td>
-                        <a href="reasignar.html?id=${tid}&nombreActual=${encodeURIComponent(ttec_id)}&user=${encodeURIComponent(tuser)}&prob=${encodeURIComponent(tprob)}" 
-                           class="btn-re">REASIGNAR</a>
-                    </td>
-                </tr>`;
-        });
-        body.innerHTML = totalHtml;
-
-    } catch (e) { 
-        console.error("Error cargando monitor:", e);
-        document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Error de datos. Revisa la consola (F12).</td></tr>"; 
-    }
-}
         
         cargarMonitor();
     </script>
