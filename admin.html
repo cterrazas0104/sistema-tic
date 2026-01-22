@@ -93,37 +93,47 @@
             "15": "Lic. Luis Carlos - Lic. Miguel", "16": "Lic. Luis Carlos - Mtr. Gabriel"
         };
 
-        async function cargarMonitor() {
-            const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
-            try {
-                const res = await fetch(webhookURL);
-                const data = await res.json();
-                const body = document.getElementById('monitor-body');
-                body.innerHTML = "";
+       async function cargarMonitor() {
+    const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
+    try {
+        const res = await fetch(webhookURL);
+        const data = await res.json();
+        const body = document.getElementById('monitor-body');
+        body.innerHTML = "";
 
-                data.forEach(t => {
-                    const tid = t.id || t.ID || 'S/N';
-                    const tuser = t.usuario || t.Usuario || 'N/A';
-                    const tprob = t.problema || t.Problema || '';
-                    
-                    // IMPORTANTE: idTecnico es el NÚMERO (1, 9, 16) para tu Webhook
-                    const idTecnico = String(t.tecnico || t.Tecnico || '9');
-                    // nombreParaTabla es el TEXTO para que TÚ lo leas bien
-                    const nombreParaTabla = diccionarioTecnicos[idTecnico] || idTecnico;
-
-                    body.innerHTML += `
-                        <tr>
-                            <td><b>#${tid}</b></td>
-                            <td>${nombreParaTabla}</td>
-                            <td>${tuser}</td>
-                            <td>
-                                <a href="reasignar.html?id=${tid}&nombreActual=${encodeURIComponent(idTecnico)}&user=${encodeURIComponent(tuser)}&prob=${encodeURIComponent(tprob)}" 
-                                   class="btn-re">REASIGNAR</a>
-                            </td>
-                        </tr>`;
-                });
-            } catch (e) { document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4'>Error de conexión.</td></tr>"; }
+        // Verificamos que 'data' sea un arreglo y tenga contenido
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            body.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px;'>No hay tickets asignados recientemente.</td></tr>";
+            return;
         }
+
+        data.forEach(t => {
+            // NORMALIZACIÓN: Forzamos la lectura de campos sin importar mayúsculas
+            const tid = t.id || t.ID || 'S/N';
+            const tuser = t.usuario || t.Usuario || 'N/A';
+            const tprob = t.problema || t.Problema || '';
+            const ttec_id = String(t.tecnico || t.Tecnico || '9');
+            
+            // Traducimos el ID al nombre real para la tabla
+            const nombreParaTabla = diccionarioTecnicos[ttec_id] || ttec_id;
+
+            body.innerHTML += `
+                <tr>
+                    <td><b>#${tid}</b></td>
+                    <td><span style="color:#2c3e50; font-weight:bold;">${nombreParaTabla}</span></td>
+                    <td>${tuser}</td>
+                    <td>
+                        <a href="reasignar.html?id=${tid}&nombreActual=${encodeURIComponent(ttec_id)}&user=${encodeURIComponent(tuser)}&prob=${encodeURIComponent(tprob)}" 
+                           class="btn-re">REASIGNAR</a>
+                    </td>
+                </tr>`;
+        });
+    } catch (e) { 
+        console.error("Error cargando monitor:", e);
+        document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Error de comunicación con Make.</td></tr>"; 
+    }
+}
+        
         cargarMonitor();
     </script>
 </body>
