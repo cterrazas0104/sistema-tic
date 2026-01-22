@@ -104,39 +104,42 @@
 
         // FUNCIÓN PARA CARGAR TICKETS RECIENTES Y PERMITIR REASIGNAR
         async function cargarMonitor() {
-            // Usamos tu webhook de historial pero pidiendo "TODOS" los asignados
-            const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
-            try {
-                const res = await fetch(webhookURL);
-                const tickets = await res.json();
-                const body = document.getElementById('monitor-body');
-                body.innerHTML = "";
+    const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
+    try {
+        const res = await fetch(webhookURL);
+        const tickets = await res.json();
+        const body = document.getElementById('monitor-body');
+        body.innerHTML = "";
 
-                // Solo mostramos los que tienen técnico (excluimos vacíos)
-                const asignados = tickets.filter(t => t.id && t.usuario);
+        // Filtro flexible: acepta 'id' o 'ID', 'usuario' o 'Usuario'
+        const asignados = tickets.filter(t => (t.id || t.ID) && (t.usuario || t.Usuario));
 
-                if(asignados.length === 0) {
-                    body.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No hay tickets asignados recientemente.</td></tr>";
-                    return;
-                }
-
-                // Mostramos los últimos 5 para no saturar
-                asignados.slice(0, 8).forEach(t => {
-                    body.innerHTML += `
-                        <tr>
-                            <td><b>#${t.id}</b></td>
-                            <td>${t.tecnico || 'Asignado'}</td>
-                            <td>${t.usuario}</td>
-                            <td>
-                                <a href="reasignar.html?id=${t.id}&nombreActual=${encodeURIComponent(t.tecnico || '')}&user=${encodeURIComponent(t.usuario)}&prob=${encodeURIComponent(t.problema || '')}" class="btn-re">REASIGNAR</a>
-                            </td>
-                        </tr>`;
-                });
-            } catch (e) {
-                document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center;'>Error al cargar monitor.</td></tr>";
-            }
+        if(asignados.length === 0) {
+            body.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No hay tickets asignados recientemente.</td></tr>";
+            return;
         }
-        
+
+        asignados.slice(0, 8).forEach(t => {
+            // Extraemos los datos de forma segura
+            const tid = t.id || t.ID || 'S/N';
+            const ttecnico = t.tecnico || t.Tecnico || 'Asignado';
+            const tuser = t.usuario || t.Usuario || 'N/A';
+            const tprob = t.problema || t.Problema || '';
+
+            body.innerHTML += `
+                <tr>
+                    <td><b>#${tid}</b></td>
+                    <td>${ttecnico}</td>
+                    <td>${tuser}</td>
+                    <td>
+                        <a href="reasignar.html?id=${tid}&nombreActual=${encodeURIComponent(ttecnico)}&user=${encodeURIComponent(tuser)}&prob=${encodeURIComponent(tprob)}" class="btn-re">REASIGNAR</a>
+                    </td>
+                </tr>`;
+        });
+    } catch (e) {
+        document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center;'>Error de comunicación.</td></tr>";
+    }
+}
         cargarMonitor();
     </script>
 </body>
