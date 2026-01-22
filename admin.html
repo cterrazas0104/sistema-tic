@@ -94,30 +94,33 @@
         };
 
        async function cargarMonitor() {
+
+           async function cargarMonitor() {
     const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
     try {
         const res = await fetch(webhookURL);
-        const data = await res.json();
+        const rawData = await res.text(); // Leemos como texto primero
+        const data = JSON.parse(rawData.trim()); // Limpiamos espacios y convertimos a JSON
+        
         const body = document.getElementById('monitor-body');
         body.innerHTML = "";
 
-        // Verificamos que 'data' sea un arreglo y tenga contenido
         if (!data || !Array.isArray(data) || data.length === 0) {
             body.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px;'>No hay tickets asignados recientemente.</td></tr>";
             return;
         }
 
+        let totalHtml = "";
         data.forEach(t => {
-            // NORMALIZACIÓN: Forzamos la lectura de campos sin importar mayúsculas
-            const tid = t.id || t.ID || 'S/N';
+            // Buscamos las llaves sin importar espacios o mayúsculas
+            const tid = t.id || t.ID || t.idticket || 'S/N';
             const tuser = t.usuario || t.Usuario || 'N/A';
             const tprob = t.problema || t.Problema || '';
             const ttec_id = String(t.tecnico || t.Tecnico || '9');
             
-            // Traducimos el ID al nombre real para la tabla
             const nombreParaTabla = diccionarioTecnicos[ttec_id] || ttec_id;
 
-            body.innerHTML += `
+            totalHtml += `
                 <tr>
                     <td><b>#${tid}</b></td>
                     <td><span style="color:#2c3e50; font-weight:bold;">${nombreParaTabla}</span></td>
@@ -128,9 +131,11 @@
                     </td>
                 </tr>`;
         });
+        body.innerHTML = totalHtml;
+
     } catch (e) { 
         console.error("Error cargando monitor:", e);
-        document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Error de comunicación con Make.</td></tr>"; 
+        document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Error de datos. Revisa la consola (F12).</td></tr>"; 
     }
 }
         
