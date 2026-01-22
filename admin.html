@@ -103,31 +103,28 @@
         }
 
         // FUNCIÓN PARA CARGAR TICKETS RECIENTES Y PERMITIR REASIGNAR
-        async function cargarMonitor() {
+ async function cargarMonitor() {
     const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx?nombre=MONITOR'; 
     try {
-        console.log("Iniciando carga de monitor...");
         const res = await fetch(webhookURL);
         const data = await res.json();
-        
-        // Esto nos dirá en la consola del navegador qué está llegando
-        console.log("Datos recibidos de Make:", data);
-
         const body = document.getElementById('monitor-body');
         body.innerHTML = "";
 
-        // Si no hay datos o no es un arreglo
-        if (!data || !Array.isArray(data) || data.length === 0) {
+        // Filtramos para asegurar que el objeto tenga al menos un identificador
+        const asignados = data.filter(t => t.id || t.ID || t.idticket);
+
+        if(asignados.length === 0) {
             body.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No hay tickets asignados recientemente.</td></tr>";
             return;
         }
 
-        data.slice(0, 8).forEach(t => {
-            // Buscamos las variables sin importar si son Mayúsculas o Minúsculas
-            const tid = t.id || t.ID || t.Id || 'S/N';
+        asignados.slice(0, 8).forEach(t => {
+            // Normalización: Busca la propiedad sin importar mayúsculas/minúsculas
+            const tid = t.id || t.ID || t.idticket || 'S/N';
             const tuser = t.usuario || t.Usuario || 'N/A';
             const tprob = t.problema || t.Problema || '';
-            const ttec = t.tecnico || t.Tecnico || 'Asignado';
+            const ttec = t.tecnico || t.Tecnico || 'Sin asignar';
 
             body.innerHTML += `
                 <tr>
@@ -136,18 +133,16 @@
                     <td>${tuser}</td>
                     <td>
                         <a href="reasignar.html?id=${tid}&nombreActual=${encodeURIComponent(ttec)}&user=${encodeURIComponent(tuser)}&prob=${encodeURIComponent(tprob)}" 
-                           class="btn-re" style="background:#e67e22; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:0.8em;">
+                           class="btn-re" style="background:#e67e22; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:0.8em; font-weight:bold;">
                            REASIGNAR
                         </a>
                     </td>
                 </tr>`;
         });
     } catch (e) {
-        console.error("Error crítico en monitor:", e);
-        document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Error de conexión con Make.</td></tr>";
+        document.getElementById('monitor-body').innerHTML = "<tr><td colspan='4' style='text-align:center;'>Error de conexión.</td></tr>";
     }
-}
-        cargarMonitor();
+}        cargarMonitor();
     </script>
 </body>
 </html>
