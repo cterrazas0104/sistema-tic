@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Tickets TIC</title>
+    <title>Centro de Tickets TIC - Historial</title>
     <style>
         :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; font-size: 1.4em; }
 
+        /* Diseño Responsivo para Móviles */
         @media screen and (max-width: 600px) {
             table, thead, tbody, th, td, tr { display: block; }
             thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -23,9 +24,11 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #f8f9fa; color: #777; text-align: left; padding: 12px; font-size: 0.85em; text-transform: uppercase; }
         td { padding: 15px; border-bottom: 1px solid #eee; color: #444; }
+        
         .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; display: inline-block; }
         .status-pendiente { background: #fff4e6; color: #fd7e14; }
         .status-concluido { background: #e6fcf5; color: #099268; }
+        
         .btn-resolver { color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9em; font-weight: bold; display: inline-block; transition: 0.3s; text-align: center; }
         .btn-active { background: var(--accent); }
         .btn-view { background: #95a5a6; }
@@ -58,33 +61,45 @@
         if (tecnicoNombre) {
             document.getElementById('saludo').innerText = "Tickets: " + tecnicoNombre;
             cargarTickets();
+        } else {
+            document.getElementById('saludo').innerText = "Acceso no válido: Falta nombre del técnico.";
         }
 
         async function cargarTickets() {
             try {
-                const response = await fetch(webhookURL + "?nombre=" + encodeURIComponent(tecnicoNombre));
+                // El parámetro &t= evita que el navegador use datos viejos de la caché
+                const response = await fetch(`${webhookURL}?nombre=${encodeURIComponent(tecnicoNombre)}&t=${new Date().getTime()}`);
                 const tickets = await response.json();
                 
                 const tableBody = document.getElementById('tabla-body');
                 tableBody.innerHTML = "";
 
-                // Verificamos si hay datos y eliminamos posibles nulos de Make
-                const ticketsValidos = tickets ? tickets.filter(t => t.ID || t.id) : [];
+                // Filtramos nulos o respuestas vacías
+                const ticketsValidos = (tickets && Array.isArray(tickets)) ? tickets.filter(t => t.ID || t.id) : [];
 
                 if (ticketsValidos.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No hay tickets asignados para este técnico/equipo.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:gray;">No se encontraron tickets asignados a este equipo.</td></tr>';
                     return;
                 }
 
                 ticketsValidos.forEach(t => {
-                    // Normalización de campos para aceptar mayúsculas/minúsculas de Make
+                    // Normalización de llaves (Make a veces cambia mayúsculas/minúsculas)
                     const tid = t.ID || t.id || 'S/N';
                     const tuser = t.Usuario || t.usuario || 'No disponible';
                     const tprob = t.Problema || t.problema || 'Sin descripción';
-                    const test = t.Estado || t.estado || 'Sin atender';
+                    const test = (t.Estado || t.estado || 'Pendiente').toString();
                     const tmod = t.modalidad || t.Modalidad || 'Presencial'; 
 
-                    const editable = (test !== "Concluido" && test !== "Revision" && test !== "Evaluado");
+                    // LÓGICA DE NORMALIZACIÓN PARA EL ESTADO
+                    // Quitamos tildes y pasamos a minúsculas (ej: "ConcluíDo" -> "concluido")
+                    const statusLimpio = test.toLowerCase()
+                                             .normalize("NFD")
+                                             .replace(/[\u0300-\u036f]/g, "");
+
+                    // Estados que consideramos como "Terminados"
+                    const terminados = ["concluido", "revision", "evaluado", "finalizado", "resuelto"];
+                    const esConcluido = terminados.includes(statusLimpio);
+                    const editable = !esConcluido;
                     
                     tableBody.innerHTML += `
                         <tr>
@@ -103,8 +118,8 @@
                         </tr>`;
                 });
             } catch (e) {
-                console.error("Error cargando tickets:", e);
-                document.getElementById('saludo').innerText = "Error al conectar con el servidor.";
+                console.error("Error:", e);
+                document.getElementById('saludo').innerText = "Error de conexión con el servidor.";
             }
         }
     </script>
