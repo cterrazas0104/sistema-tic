@@ -56,8 +56,10 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const tecnicoNombre = urlParams.get('nombre');
-        const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
-
+        //url de make
+        //const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
+        //url de sheets
+            const webhookURL = 'https://script.google.com/a/macros/queretaro.gob.mx/s/AKfycbxao7ikMdpSZJk9kDZtVYerKBB5Vje5Symd0Y0CzmpG5I3GPX3vUWqQ_qSIBfdUCcsk/exec'; 
         if (tecnicoNombre) {
             document.getElementById('saludo').innerText = "Tickets: " + tecnicoNombre;
             cargarTickets();
