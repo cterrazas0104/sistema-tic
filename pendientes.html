@@ -37,7 +37,9 @@
 
     <script>
         async function cargar() {
-            const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
+            //const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
+            //URL de Apps Script
+const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
             try {
                 const res = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
                 const data = await res.json();
