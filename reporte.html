@@ -74,28 +74,38 @@
         function regresar() { window.location.href = `historial.html?nombre=${encodeURIComponent(tecnico)}`; }
 
         async function enviarReporte() {
-            const solucion = document.getElementById('solucion-texto').value;
-            const comentarios = document.getElementById('comentarios-tecnico').value;
-            if (!solucion) return alert("Por favor, describe la solución.");
+    const solucion = document.getElementById('solucion-texto').value;
+    const comentarios = document.getElementById('comentarios-tecnico').value;
+    if (!solucion) return alert("Por favor, describe la solución.");
 
-            document.getElementById('status-msg').style.display = "block";
-            document.getElementById('status-msg').innerText = "Enviando reporte...";
+    document.getElementById('status-msg').style.display = "block";
+    document.getElementById('status-msg').innerText = "Enviando reporte y notificando a jefe...";
 
-            try {
-                await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ticket: ticketId,
-                        usuario: nombreUser,
-                        solucion: solucion,
-                        comentarios_tecnico: comentarios,
-                        accion: "RevisionRequerida"
-                    })
-                });
-                document.getElementById('main-form').innerHTML = `<h2 style="color:var(--accent)">¡Reporte enviado!</h2><button class="btn-send" onclick="regresar()">Volver al Inicio</button>`;
-            } catch (error) { alert("Error al enviar."); }
-        }
+    // URL de tu Apps Script (la misma que usas para el historial)
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
+
+    try {
+        // Usamos mode: 'no-cors' para evitar bloqueos del navegador al enviar el POST
+        await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket: ticketId,
+                usuario: nombreUser,
+                solucion: solucion,
+                comentarios_tecnico: comentarios
+            })
+        });
+
+        // Como usamos 'no-cors', no podemos leer la respuesta, pero si no hay error asumimos éxito
+        document.getElementById('main-form').innerHTML = `<h2 style="color:var(--accent)">¡Reporte enviado!</h2><p>Se ha notificado al supervisor para su validación.</p><button class="btn-send" onclick="regresar()">Volver al Inicio</button>`;
+    } catch (error) { 
+        console.error(error);
+        alert("Error al enviar el reporte."); 
+    }
+}
     </script>
 </body>
 </html>
+
