@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Ticket de Servicio - SEDIF</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; --error: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 600px; }
+        h2 { color: var(--primary); text-align: center; border-bottom: 3px solid var(--accent); padding-bottom: 15px; margin-top: 0; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; color: #444; margin-bottom: 8px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1em; box-sizing: border-box; transition: 0.3s; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 5px rgba(0, 173, 159, 0.2); }
+        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-submit:hover { background: var(--accent); transform: translateY(-2px); }
+        .note { font-size: 0.85em; color: #777; margin-top: 5px; }
+        
+        /* Validación visual */
+        input:invalid { border-color: var(--error); }
+        
+        /* Loader */
+        #loader { display: none; text-align: center; margin-top: 15px; color: var(--primary); font-weight: bold; }
+        #success-msg { display: none; text-align: center; margin-top: 20px; }
+        .check-icon { font-size: 50px; color: var(--accent); display: block; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="card" id="form-card">
+    <h2>📝 Levantar Ticket de Servicio</h2>
+    <p style="text-align:center; color:#666; margin-bottom:30px;">Departamento de Tecnologías de la Información</p>
+
+    <form id="ticketForm" onsubmit="enviarTicket(event)">
+        
+        <div class="form-group">
+            <label>Nombre Completo:</label>
+            <input type="text" id="nombre" required placeholder="Ej. Juan Pérez">
+        </div>
+
+        <div class="form-group">
+            <label>Correo Electrónico:</label>
+            <input type="email" id="correo" required placeholder="correo@queretaro.gob.mx">
+        </div>
+
+        <div class="form-group">
+            <label>Teléfono de Contacto:</label>
+            <input type="tel" id="telefono" required pattern="[0-9]{10}" maxlength="10" 
+                   title="Ingresa solo los 10 números, sin espacios ni guiones."
+                   placeholder="Ej. 4421234567" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <div class="note">Solo 10 dígitos numéricos.</div>
+        </div>
+
+        <div class="form-group">
+            <label>Ubicación / Edificio:</label>
+            <select id="ubicacion" required>
+                <option value="" disabled selected>Selecciona una opción...</option>
+                <option value="CRIQ">CRIQ</option>
+                <option value="Casa de Ecala">Casa de Ecala</option>
+                <option value="Procuraduría">Procuraduría</option>
+                <option value="Centro Gerontológico">Centro Gerontológico</option>
+                <option value="Albergue">Albergue</option>
+                <option value="Otro">Otro</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Departamento / Dirección:</label>
+            <input type="text" id="departamento" required placeholder="Ej. Recursos Humanos">
+        </div>
+
+        <div class="form-group">
+            <label>Descripción del Problema:</label>
+            <textarea id="problema" rows="4" required placeholder="Describe brevemente en qué necesitas ayuda..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">🚀 Generar Ticket</button>
+        <div id="loader">Enviando solicitud... ⏳</div>
+    </form>
+</div>
+
+<div class="card" id="success-msg">
+    <div class="check-icon">✔</div>
+    <h2 style="border:none;">¡Ticket Creado!</h2>
+    <p>Hemos recibido tu solicitud. El equipo de TIC ha sido notificado.</p>
+    <p style="color:#777; font-size:0.9em;">Revisa tu correo para ver el número de seguimiento.</p>
+    <button onclick="location.reload()" class="btn-submit" style="margin-top:20px; background:#eee; color:#333;">Levantar otro ticket</button>
+</div>
+
+<script>
+    async function enviarTicket(e) {
+        e.preventDefault(); // Evita que se recargue la página
+
+        const btn = document.querySelector('.btn-submit');
+        const loader = document.getElementById('loader');
+        
+        btn.style.display = 'none';
+        loader.style.display = 'block';
+
+        // Recolectar datos
+        const data = {
+            accion: "crear_ticket", // ESTO LE DICE AL SCRIPT QUE ES NUEVO
+            nombre: document.getElementById('nombre').value,
+            correo: document.getElementById('correo').value,
+            telefono: document.getElementById('telefono').value,
+            ubicacion: document.getElementById('ubicacion').value,
+            departamento: document.getElementById('departamento').value,
+            problema: document.getElementById('problema').value
+        };
+
+        // TU URL DE APPS SCRIPT (LA MISMA QUE USAS EN LOS OTROS ARCHIVOS)
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec'; 
+
+        try {
+            await fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            // Mostrar éxito
+            document.getElementById('form-card').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'block';
+
+        } catch (error) {
+            console.error('Error!', error);
+            alert('Hubo un error al conectar con el servidor.');
+            btn.style.display = 'block';
+            loader.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
