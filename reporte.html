@@ -91,11 +91,11 @@
             mode: 'no-cors', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                ticket: ticketId,
-                usuario: nombreUser,
-                solucion: solucion,
-                comentarios_tecnico: comentarios
-            })
+    ticket: ticketId,
+    usuario: nombreUser, // Asegúrate de que esta variable tenga el nombre del usuario
+    solucion: solucion,
+    comentarios_tecnico: comentarios
+})
         });
 
         // Como usamos 'no-cors', no podemos leer la respuesta, pero si no hay error asumimos éxito
@@ -108,4 +108,5 @@
     </script>
 </body>
 </html>
+
 
