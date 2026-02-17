@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validación de Tickets - Jefe TIC</title>
+    <style>
+        /* ... (Usa los mismos estilos de tu historial.html para mantener consistencia) ... */
+        :root { --primary: #2c3e50; --accent: #9b59b6; --bg: #f4f7f6; } /* Color morado para validación */
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        h2 { margin: 0; color: var(--primary); }
+        .back-btn { text-decoration: none; color: #555; font-weight: bold; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid var(--accent); transition: 0.3s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .ticket-id { font-weight: bold; color: var(--primary); }
+        .tech-name { background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; color: #555; }
+        .info-row { margin: 5px 0; color: #555; font-size: 0.95em; }
+        .solution-box { background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 0.9em; border: 1px solid #eee; }
+        .btn-validate { display: block; width: 100%; text-align: center; background: var(--accent); color: white; padding: 10px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 15px; }
+        .btn-validate:hover { background: #8e44ad; }
+        #loader { text-align: center; margin-top: 50px; color: #777; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>✅ Pendientes de Validación</h2>
+        <a href="panel.html" class="back-btn">← Volver al Panel</a>
+    </div>
+
+    <div id="loader">Buscando tickets por revisar... ⏳</div>
+    <div id="tickets-container"></div>
+
+    <script>
+        // Diccionario de Técnicos (Copia del panel.html)
+        const diccionarioTecnicos = {
+            "1": "Gabriel Terrazas", "2": "Miguel Chavez", "3": "Eduardo Perez",
+            "4": "Alejandro Reyes", "5": "Fati", "12": "Luis Carlos"
+            // ... (Agrega los combos si quieres)
+        };
+
+        async function cargarPendientes() {
+            // Usamos tu Apps Script existente con un parámetro especial
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec?accion=buscar_revision'; 
+
+            try {
+                const response = await fetch(scriptURL);
+                const data = await response.json();
+                
+                const container = document.getElementById('tickets-container');
+                document.getElementById('loader').style.display = 'none';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#777;"><h3>¡Todo al día! 🎉</h3><p>No hay tickets pendientes de validación.</p></div>';
+                    return;
+                }
+
+                data.forEach(ticket => {
+                    const nombreTecnico = diccionarioTecnicos[ticket.tecnico_id] || "Técnico #" + ticket.tecnico_id;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <span class="ticket-id">#${ticket.id}</span>
+                            <span class="tech-name">${nombreTecnico}</span>
+                        </div>
+                        <div class="info-row"><strong>Usuario:</strong> ${ticket.usuario}</div>
+                        <div class="info-row"><strong>Problema:</strong> ${ticket.problema}</div>
+                        
+                        <div class="solution-box">
+                            <strong>Solución reportada:</strong><br>
+                            ${ticket.solucion}
+                        </div>
+
+                        <a href="https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21?ticket=${ticket.id}&usuario=${encodeURIComponent(ticket.usuario)}" 
+                           class="btn-validate" target="_blank">
+                           Aprobar y Enviar Encuesta
+                        </a>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loader').innerText = "Error al cargar datos.";
+            }
+        }
+
+        cargarPendientes();
+    </script>
+</body>
+</html>
