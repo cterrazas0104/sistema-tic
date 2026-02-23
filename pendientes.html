@@ -18,7 +18,12 @@
 </head>
 <body>
     <div class="container">
-        <a href="admin.html" style="text-decoration:none; font-weight:bold; color:var(--primary);">← Volver al Panel</a>
+        <div id="admin-back-btn" style="display: none; text-align: left; margin-bottom: 20px;">
+            <a href="admin.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">
+                ← Volver al Panel de Administrador
+            </a>
+        </div>
+
         <h2>Tickets Pendientes de Asignación</h2>
         <table>
             <thead>
@@ -36,17 +41,20 @@
     </div>
 
     <script>
+        // VERIFICAR SESIÓN DE ADMINISTRADOR
+        if (localStorage.getItem('adminSession') === 'active') {
+            document.getElementById('admin-back-btn').style.display = 'block';
+        }
+
         async function cargar() {
-            //const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
-            //URL de Apps Script
-const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
+            const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
             try {
                 const res = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
                 const data = await res.json();
                 const body = document.getElementById('tabla-body');
                 body.innerHTML = "";
 
-                // FILTRO FLEXIBLE: Busca ID o id, Usuario o usuario, etc.
+                // FILTRO FLEXIBLE
                 const ticketsReales = data.filter(t => (t.ID || t.id) && (t.ID !== "empty" && t.id !== "empty"));
 
                 if (ticketsReales.length === 0) {
@@ -55,7 +63,6 @@ const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJL
                 }
 
                 ticketsReales.forEach(t => {
-                    // Normalizamos los datos para que no importe cómo los mande Make
                     const ticketID = t.ID || t.id || 'N/A';
                     const user = t.Usuario || t.usuario || 'Sin nombre';
                     const prob = t.Problema || t.problema || '';
@@ -78,7 +85,7 @@ const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJL
                 });
             } catch (e) {
                 console.error("Error:", e);
-                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error de conexión. Revisa Make.</td></tr>';
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error de conexión. Revisa la consola.</td></tr>';
             }
         }
         cargar();
