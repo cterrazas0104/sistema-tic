@@ -9,7 +9,7 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; font-size: 1.4em; }
-
+        
         /* Diseño Responsivo para Móviles */
         @media screen and (max-width: 600px) {
             table, thead, tbody, th, td, tr { display: block; }
@@ -36,6 +36,13 @@
 </head>
 <body>
     <div class="container">
+        
+        <div id="admin-back-btn" style="display: none; text-align: left; margin-bottom: 20px;">
+            <a href="admin.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">
+                ← Volver al Panel de Administrador
+            </a>
+        </div>
+
         <h2 id="saludo">Cargando Centro de Tickets...</h2>
         <div id="tabla-contenedor">
             <table>
@@ -54,12 +61,17 @@
     </div>
 
     <script>
+        // --- NUEVO: VERIFICAR SI ES ADMINISTRADOR PARA MOSTRAR BOTÓN ---
+        if (localStorage.getItem('adminSession') === 'active') {
+            document.getElementById('admin-back-btn').style.display = 'block';
+        }
+        
         const urlParams = new URLSearchParams(window.location.search);
         const tecnicoNombre = urlParams.get('nombre');
-        //url de make
-        //const webhookURL = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx'; 
-        //url de sheets
-            const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec'; 
+        
+        // url de sheets
+        const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec'; 
+        
         if (tecnicoNombre) {
             document.getElementById('saludo').innerText = "Tickets: " + tecnicoNombre;
             cargarTickets();
