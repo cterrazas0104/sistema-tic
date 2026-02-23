@@ -21,6 +21,12 @@
 </head>
 <body>
     <div class="card">
+        <div id="admin-back-btn" style="display: none; text-align: left; margin-bottom: 20px;">
+            <a href="admin.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">
+                ← Volver al Panel de Administrador
+            </a>
+        </div>
+
         <h2>Reasignar Ticket #<span id="ticket-id"></span></h2>
         
         <div class="info">
@@ -61,6 +67,11 @@
     </div>
 
     <script>
+        // VERIFICAR SESIÓN DE ADMINISTRADOR
+        if (localStorage.getItem('adminSession') === 'active') {
+            document.getElementById('admin-back-btn').style.display = 'block';
+        }
+
         const params = new URLSearchParams(window.location.search);
         const tId = params.get('id');
         const nombreActual = decodeURIComponent(params.get('nombreActual') || 'No asignado');
@@ -70,7 +81,6 @@
         document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || '---');
         document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || '---');
 
-        // 👇 TU URL DEL APPS SCRIPT 👇
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
 
         async function reasignar() {
@@ -90,13 +100,12 @@
             btn.innerText = "Procesando reasignación en sistema...";
 
             try {
-                // Ahora le enviamos la orden a TU script, no a Make
                 await fetch(scriptURL, { 
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        accion: "reasignar_ticket", // Acción nueva para el script
+                        accion: "reasignar_ticket",
                         ticket: tId,
                         tecnicoAnterior: nombreActual,
                         nombreNuevo: nombreNuevo,
@@ -105,7 +114,6 @@
                     })
                 });
 
-                // Como usamos no-cors, asumimos que si no hay error de red, funcionó
                 document.getElementById('msg').style.display = "block";
                 setTimeout(() => { 
                     window.location.href = "admin.html"; 
