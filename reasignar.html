@@ -70,11 +70,13 @@
         document.getElementById('user-name').innerText = decodeURIComponent(params.get('user') || '---');
         document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || '---');
 
+        // 👇 TU URL DEL APPS SCRIPT 👇
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
+
         async function reasignar() {
             const btn = document.getElementById('btn-reasignar');
             const selectTecnico = document.getElementById('tecnico-select');
             
-            // Nombre del nuevo técnico para el correo y el ID para el Switch en Make
             const nombreNuevo = selectTecnico.options[selectTecnico.selectedIndex].text;
             const idNuevo = selectTecnico.value;
             const comentariosAdmin = document.getElementById('comentarios').value;
@@ -85,32 +87,33 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "Procesando reasignación...";
+            btn.innerText = "Procesando reasignación en sistema...";
 
             try {
-                const response = await fetch('https://hook.us2.make.com/94orivdcgcki5am3unr916rgnh39rwb4', { 
+                // Ahora le enviamos la orden a TU script, no a Make
+                await fetch(scriptURL, { 
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
+                        accion: "reasignar_ticket", // Acción nueva para el script
                         ticket: tId,
                         tecnicoAnterior: nombreActual,
                         nombreNuevo: nombreNuevo,
                         idNuevo: idNuevo,
-                        comentarios: comentariosAdmin,
-                        accion: "ReasignarTicket"
+                        comentarios: comentariosAdmin
                     })
                 });
 
-                if(response.ok) {
-                    document.getElementById('msg').style.display = "block";
-                    setTimeout(() => { 
-                        window.location.href = "admin.html"; 
-                    }, 2500);
-                } else {
-                    throw new Error();
-                }
+                // Como usamos no-cors, asumimos que si no hay error de red, funcionó
+                document.getElementById('msg').style.display = "block";
+                setTimeout(() => { 
+                    window.location.href = "admin.html"; 
+                }, 2000);
+
             } catch (e) { 
-                alert("Error al conectar con Make. Intenta de nuevo."); 
+                console.error(e);
+                alert("Error de conexión con el servidor. Intenta de nuevo."); 
                 btn.disabled = false;
                 btn.innerText = "Confirmar Cambio de Técnico";
             }
