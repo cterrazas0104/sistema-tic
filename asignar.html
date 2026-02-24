@@ -61,7 +61,7 @@
         <textarea id="comentarios" placeholder="Ej: Reportarse al llegar o llevar herramienta..."></textarea>
         
         <button id="btn-asignar" onclick="asignar()">Confirmar Asignación</button>
-        <p id="msg">Ticket asignado. Redirigiendo...</p>
+        <p id="msg">Ticket asignado correctamente. Redirigiendo...</p>
     </div>
 
     <script>
@@ -73,7 +73,7 @@
         document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || '---');
         document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || '---');
 
-        // 👇 LA URL DE TU APPS SCRIPT 👇
+        // TU APPS SCRIPT DE LA CUENTA PERSONAL
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
 
         async function asignar() {
@@ -87,7 +87,7 @@
             btn.innerText = "Procesando...";
 
             try {
-                // Enviamos los datos directamente a tu Apps Script (sin Make)
+                // Enviar la orden de asignación al script
                 await fetch(scriptURL, { 
                     method: 'POST',
                     mode: 'no-cors',
@@ -96,7 +96,7 @@
                         accion: "AsignarTicket",
                         ticket: tId,
                         tecnico: idTecnico,
-                        nombreTecnico: nombreCompleto, // Lo pasamos para el correo
+                        nombreTecnico: nombreCompleto,
                         modalidad: document.getElementById('modalidad-final').value,
                         comentarios: document.getElementById('comentarios').value
                     })
@@ -104,12 +104,12 @@
 
                 document.getElementById('msg').style.display = "block";
                 setTimeout(() => { 
-                    window.location.href = "historial.html?nombre=" + encodeURIComponent(nombreCompleto); 
+                    window.location.href = "pendientes.html"; 
                 }, 2000);
 
             } catch (e) { 
                 console.error(e);
-                alert("Error de comunicación. Intenta de nuevo."); 
+                alert("Error de comunicación con el servidor. Intenta de nuevo."); 
                 btn.disabled = false;
                 btn.innerText = "Confirmar Asignación";
             }
