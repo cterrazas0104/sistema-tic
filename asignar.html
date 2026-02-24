@@ -73,7 +73,7 @@
         document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || '---');
         document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || '---');
 
-        // TU APPS SCRIPT DE LA CUENTA PERSONAL
+        // URL DE TU APPS SCRIPT WEB APP
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
 
         async function asignar() {
@@ -87,7 +87,6 @@
             btn.innerText = "Procesando...";
 
             try {
-                // Enviar la orden de asignación al script
                 await fetch(scriptURL, { 
                     method: 'POST',
                     mode: 'no-cors',
@@ -98,18 +97,18 @@
                         tecnico: idTecnico,
                         nombreTecnico: nombreCompleto,
                         modalidad: document.getElementById('modalidad-final').value,
-                        comentarios: document.getElementById('comentarios').value
+                        comentarios: document.getElementById('comentarios').value,
+                        // ENVÍO DE DATOS EXTRA PARA EL CORREO HERMOSO
+                        usuario: document.getElementById('user-name').innerText,
+                        ubicacion: document.getElementById('user-loc').innerText,
+                        problema: document.getElementById('user-prob').innerText
                     })
                 });
 
                 document.getElementById('msg').style.display = "block";
-                setTimeout(() => { 
-                    window.location.href = "pendientes.html"; 
-                }, 2000);
-
+                setTimeout(() => { window.location.href = "pendientes.html"; }, 2000);
             } catch (e) { 
-                console.error(e);
-                alert("Error de comunicación con el servidor. Intenta de nuevo."); 
+                alert("Error de comunicación con el servidor."); 
                 btn.disabled = false;
                 btn.innerText = "Confirmar Asignación";
             }
