@@ -22,13 +22,10 @@
 <body>
     <div class="card">
         <div id="admin-back-btn" style="display: none; text-align: left; margin-bottom: 20px;">
-            <a href="admin.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">
-                ← Volver al Panel de Administrador
-            </a>
+            <a href="admin.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">← Volver al Panel de Administrador</a>
         </div>
 
         <h2>Reasignar Ticket #<span id="ticket-id"></span></h2>
-        
         <div class="info">
             <p><strong>Atendía actualmente:</strong> <span id="tecnico-actual" style="color:#e67e22; font-weight:bold;"></span></p>
             <p><strong>Usuario:</strong> <span id="user-name"></span></p>
@@ -60,17 +57,14 @@
         </select>
 
         <label for="comentarios">Motivo del cambio e instrucciones:</label>
-        <textarea id="comentarios" rows="3" placeholder="Ej: El técnico anterior tuvo una emergencia, favor de atender a la brevedad..."></textarea>
+        <textarea id="comentarios" rows="3" placeholder="Ej: El técnico anterior tuvo una emergencia..."></textarea>
         
         <button id="btn-reasignar" onclick="reasignar()">Confirmar Cambio de Técnico</button>
         <p id="msg">Reasignación exitosa. Enviando notificaciones...</p>
     </div>
 
     <script>
-        // VERIFICAR SESIÓN DE ADMINISTRADOR
-        if (localStorage.getItem('adminSession') === 'active') {
-            document.getElementById('admin-back-btn').style.display = 'block';
-        }
+        if (localStorage.getItem('adminSession') === 'active') { document.getElementById('admin-back-btn').style.display = 'block'; }
 
         const params = new URLSearchParams(window.location.search);
         const tId = params.get('id');
@@ -97,12 +91,11 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "Procesando reasignación en sistema...";
+            btn.innerText = "Procesando reasignación...";
 
             try {
                 await fetch(scriptURL, { 
-                    method: 'POST',
-                    mode: 'no-cors',
+                    method: 'POST', mode: 'no-cors',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         accion: "reasignar_ticket",
@@ -110,20 +103,19 @@
                         tecnicoAnterior: nombreActual,
                         nombreNuevo: nombreNuevo,
                         idNuevo: idNuevo,
-                        comentarios: comentariosAdmin
+                        comentarios: comentariosAdmin,
+                        // ENVÍO DE DATOS EXTRA PARA EL CORREO HERMOSO
+                        usuario: document.getElementById('user-name').innerText,
+                        problema: document.getElementById('user-prob').innerText
                     })
                 });
 
                 document.getElementById('msg').style.display = "block";
-                setTimeout(() => { 
-                    window.location.href = "admin.html"; 
-                }, 2000);
-
+                setTimeout(() => { window.location.href = "admin.html"; }, 2000);
             } catch (e) { 
-                console.error(e);
-                alert("Error de conexión con el servidor. Intenta de nuevo."); 
+                alert("Error de conexión con el servidor."); 
                 btn.disabled = false;
-                btn.innerText = "Confirmar Cambio de Técnico";
+                btn.innerText = "Confirmar Cambio";
             }
         }
     </script>
