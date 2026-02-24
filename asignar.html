@@ -33,35 +33,35 @@
             <option value="Remota">💻 Remota</option>
         </select>
         
-<label for="tecnico-select">Asignar a:</label>
-<select id="tecnico-select">
-    <optgroup label="Individual">
-        <option value="1">Mtr. Gabriel Terrazas</option>
-        <option value="2">Lic. Miguel Chavez</option>
-        <option value="3">Lic. Eduardo Perez</option>
-        <option value="4">Lic. Martin Alejandro Reyes Bocanegra</option>
-        <option value="5">Fati</option>
-        <option value="12">Lic. Luis Carlos</option>
-    </optgroup>
-    <optgroup label="Parejas / Equipos">
-        <option value="6">Mtr. Gabriel - Lic. Eduardo</option>
-        <option value="7">Mtr. Gabriel - Lic. Miguel</option>
-        <option value="8">Lic. Miguel - Lic. Eduardo</option>
-        <option value="9">Lic. Eduardo - Lic. Alejandro</option>
-        <option value="10">Lic. Miguel - Lic. Alejandro</option>
-        <option value="11">Mtr. Gabriel - Lic. Alejandro</option>
-        <option value="13">Lic. Luis Carlos - Lic. Alejandro</option>
-        <option value="14">Lic. Luis Carlos - Lic. Eduardo</option>
-        <option value="15">Lic. Luis Carlos - Lic. Miguel</option>
-        <option value="16">Lic. Luis Carlos - Mtr. Gabriel</option>
-    </optgroup>
-</select>
+        <label for="tecnico-select">Asignar a:</label>
+        <select id="tecnico-select">
+            <optgroup label="Individual">
+                <option value="1">Mtr. Gabriel Terrazas</option>
+                <option value="2">Lic. Miguel Chavez</option>
+                <option value="3">Lic. Eduardo Perez</option>
+                <option value="4">Lic. Martin Alejandro Reyes Bocanegra</option>
+                <option value="5">Fati</option>
+                <option value="12">Lic. Luis Carlos</option>
+            </optgroup>
+            <optgroup label="Parejas / Equipos">
+                <option value="6">Mtr. Gabriel - Lic. Eduardo</option>
+                <option value="7">Mtr. Gabriel - Lic. Miguel</option>
+                <option value="8">Lic. Miguel - Lic. Eduardo</option>
+                <option value="9">Lic. Eduardo - Lic. Alejandro</option>
+                <option value="10">Lic. Miguel - Lic. Alejandro</option>
+                <option value="11">Mtr. Gabriel - Lic. Alejandro</option>
+                <option value="13">Lic. Luis Carlos - Lic. Alejandro</option>
+                <option value="14">Lic. Luis Carlos - Lic. Eduardo</option>
+                <option value="15">Lic. Luis Carlos - Lic. Miguel</option>
+                <option value="16">Lic. Luis Carlos - Mtr. Gabriel</option>
+            </optgroup>
+        </select>
 
         <label for="comentarios">Instrucciones para el técnico:</label>
         <textarea id="comentarios" placeholder="Ej: Reportarse al llegar o llevar herramienta..."></textarea>
         
         <button id="btn-asignar" onclick="asignar()">Confirmar Asignación</button>
-        <p id="msg">Ticket asignado correctamente.</p>
+        <p id="msg">Ticket asignado. Redirigiendo...</p>
     </div>
 
     <script>
@@ -73,11 +73,13 @@
         document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || '---');
         document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || '---');
 
+        // 👇 LA URL DE TU APPS SCRIPT 👇
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
+
         async function asignar() {
             const btn = document.getElementById('btn-asignar');
             const selectTecnico = document.getElementById('tecnico-select');
             
-            // Captura el nombre EXACTO (con Mtr. o Lic.) para la URL del historial
             const nombreCompleto = selectTecnico.options[selectTecnico.selectedIndex].text;
             const idTecnico = selectTecnico.value;
             
@@ -85,28 +87,28 @@
             btn.innerText = "Procesando...";
 
             try {
-                const response = await fetch('https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21', { 
+                // Enviamos los datos directamente a tu Apps Script (sin Make)
+                await fetch(scriptURL, { 
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
+                        accion: "AsignarTicket",
                         ticket: tId,
-                        tecnico: idTecnico, 
+                        tecnico: idTecnico,
+                        nombreTecnico: nombreCompleto, // Lo pasamos para el correo
                         modalidad: document.getElementById('modalidad-final').value,
-                        comentarios: document.getElementById('comentarios').value,
-                        accion: "AsignarTicket"
+                        comentarios: document.getElementById('comentarios').value
                     })
                 });
 
-                if(response.ok) {
-                    document.getElementById('msg').style.display = "block";
-                    setTimeout(() => { 
-                        // Redirección con el nombre exacto para filtrar el historial sin errores
-                        window.location.href = "historial.html?nombre=" + encodeURIComponent(nombreCompleto); 
-                    }, 2000);
-                } else {
-                    throw new Error();
-                }
+                document.getElementById('msg').style.display = "block";
+                setTimeout(() => { 
+                    window.location.href = "historial.html?nombre=" + encodeURIComponent(nombreCompleto); 
+                }, 2000);
+
             } catch (e) { 
+                console.error(e);
                 alert("Error de comunicación. Intenta de nuevo."); 
                 btn.disabled = false;
                 btn.innerText = "Confirmar Asignación";
