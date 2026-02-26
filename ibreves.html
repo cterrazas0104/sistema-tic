@@ -12,64 +12,92 @@
         
         label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--primary); margin-top: 15px; font-size: 0.9em; }
         input, select, textarea, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; box-sizing: border-box; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; }
         
         .row { display: flex; gap: 10px; align-items: flex-end; }
         .row input { flex: 1; }
-        .btn-now { width: auto; background: #95a5a6; color: white; padding: 12px; font-size: 0.8em; margin-top: 0; cursor: pointer; border: none; }
+        .btn-now { width: auto; background: #95a5a6; color: white; padding: 12px; font-size: 0.8em; margin-top: 0; cursor: pointer; border: none; font-weight: bold;}
 
         button#btn-enviar { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 25px; font-size: 1.1em; }
-        button#btn-enviar:hover { opacity: 0.9; }
+        button#btn-enviar:hover { opacity: 0.9; transform: translateY(-2px); }
         button:disabled { background: #ccc; cursor: not-allowed; }
 
-        #msg { display: none; text-align: center; color: #27ae60; font-weight: bold; margin-top: 15px; padding: 10px; border: 1px solid #27ae60; border-radius: 8px; }
+        #msg { display: none; text-align: center; color: #27ae60; font-weight: bold; margin-top: 15px; padding: 10px; border: 1px solid #27ae60; border-radius: 8px; background: #e6fcf5; }
+        .req { color: #e74c3c; } /* Asterisco rojo para obligatorios */
+        
+        .back-link { display: block; text-align: center; margin-bottom: 20px; color: #7f8c8d; text-decoration: none; font-size: 0.9em; font-weight: bold; }
+        .back-link:hover { color: var(--primary); }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Nueva Incidencia (Ecala/Express)</h2>
+        <a href="#" id="link-volver" class="back-link">← Volver a Mi Panel</a>
+        <h2>Nueva Incidencia Express</h2>
         
-        <label>Fecha:</label>
+        <label>Fecha: <span class="req">*</span></label>
         <input type="date" id="fecha">
 
-        <label>Hora Inicio:</label>
+        <label>Hora Inicio: <span class="req">*</span></label>
         <div class="row">
             <input type="time" id="hora-inicio">
             <button type="button" class="btn-now" onclick="setHora('hora-inicio')">Ahora</button>
         </div>
 
-        <label>Hora Fin:</label>
+        <label>Hora Fin: <span class="req">*</span></label>
         <div class="row">
             <input type="time" id="hora-fin">
             <button type="button" class="btn-now" onclick="setHora('hora-fin')">Ahora</button>
         </div>
 
-        <label>Usuario / Solicitante:</label>
+        <label>Usuario / Solicitante: <span class="req">*</span></label>
         <input type="text" id="usuario" placeholder="¿A quién apoyaste?">
+        
+        <label>Correo del Usuario: <span class="req">*</span></label>
+        <input type="email" id="correo" placeholder="ejemplo@queretaro.gob.mx" required>
 
         <label>Área:</label>
         <input type="text" id="area" placeholder="Ej: Adquisiciones, Finanzas...">
 
-        <label>Descripción del Problema:</label>
+        <label>Descripción del Problema: <span class="req">*</span></label>
         <textarea id="problema" rows="2" placeholder="Ej: No imprime, equipo lento..."></textarea>
 
-        <label>Descripción del Apoyo:</label>
+        <label>Descripción del Apoyo: <span class="req">*</span></label>
         <textarea id="apoyo" rows="2" placeholder="¿Qué solución aplicaste?"></textarea>
 
-<label>Atendió:</label>
-<select id="tecnico">
-    <option value="Mtr. Gabriel Terrazas">Mtr. Gabriel Terrazas</option>
-    <option value="Lic. Miguel Chavez">Lic. Miguel Chavez</option>
-    <option value="Lic. Eduardo Perez">Lic. Eduardo Perez</option>
-    <option value="Lic. Martin Alejandro Reyes Bocanegra">Lic. Alejandro Reyes</option>
-    <option value="Fati">Fati</option>
-    <option value="Lic. Luis Carlos">Lic. Luis Carlos</option>
-</select>
+        <label>Atendió:</label>
+        <select id="tecnico">
+            <option value="Mtr. Gabriel Terrazas">Mtr. Gabriel Terrazas</option>
+            <option value="Lic. Miguel Chavez">Lic. Miguel Chavez</option>
+            <option value="Lic. Eduardo Perez">Lic. Eduardo Perez</option>
+            <option value="Lic. Martin Alejandro Reyes Bocanegra">Lic. Alejandro Reyes</option>
+            <option value="Fati">Fati</option>
+            <option value="Lic. Luis Carlos">Lic. Luis Carlos</option>
+        </select>
 
-        <button id="btn-enviar" onclick="enviarIncidencia()">Guardar en Bitácora</button>
-        <p id="msg">✅ Incidencia guardada con éxito.</p>
+        <button id="btn-enviar" onclick="enviarIncidencia()">Guardar y Enviar Acuse</button>
+        <p id="msg">✅ Incidencia guardada y acuse enviado al usuario.</p>
     </div>
 
     <script>
+        // --- Configurar Panel de Regreso y Técnico por Defecto ---
+        const userRole = localStorage.getItem('userRole');
+        const userName = localStorage.getItem('userName');
+        const linkVolver = document.getElementById('link-volver');
+        
+        if (userRole === 'admin') { linkVolver.href = 'admin.html'; } 
+        else if (userRole === 'tecnico') { linkVolver.href = 'tecnico.html'; }
+        else { linkVolver.style.display = 'none'; }
+
+        if (userName) {
+            const selectTecnico = document.getElementById('tecnico');
+            for(let i=0; i<selectTecnico.options.length; i++) {
+                if(selectTecnico.options[i].value === userName || userName.includes(selectTecnico.options[i].value)) {
+                    selectTecnico.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
         // Poner fecha de hoy por defecto
         document.getElementById('fecha').valueAsDate = new Date();
 
@@ -82,48 +110,48 @@
 
         async function enviarIncidencia() {
             const btn = document.getElementById('btn-enviar');
-            const webhookURL = 'https://hook.us2.make.com/90dhlyybacju2978pxmwk49gsvccawy2';
+            // 👇 PEGA AQUÍ TU URL NUEVA DE APPS SCRIPT 👇
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
          
             const data = {
+                accion: "guardar_ibreve", 
                 fecha: document.getElementById('fecha').value,
                 inicio: document.getElementById('hora-inicio').value,
                 fin: document.getElementById('hora-fin').value,
                 usuario: document.getElementById('usuario').value,
+                correo: document.getElementById('correo').value,
                 area: document.getElementById('area').value,
                 problema: document.getElementById('problema').value,
                 apoyo: document.getElementById('apoyo').value,
                 tecnico: document.getElementById('tecnico').value
             };
 
-            // Validación mínima
-            if(!data.usuario || !data.problema || !data.inicio) {
-                alert("Por favor completa Usuario, Problema y Hora de Inicio.");
+            // VALIDACIÓN ESTRICTA: AHORA EL CORREO ES OBLIGATORIO
+            if(!data.usuario || !data.correo || !data.problema || !data.inicio || !data.apoyo) {
+                alert("Por favor completa todos los campos obligatorios (*), incluyendo el Correo del Usuario.");
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "Enviando...";
+            btn.innerText = "Guardando y enviando correo...";
 
             try {
-                const response = await fetch(webhookURL, {
+                const response = await fetch(scriptURL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
                 });
 
-                if(response.ok) {
-                    document.getElementById('msg').style.display = "block";
-                    // Limpiar formulario tras 2 segundos para nueva entrada
-                    setTimeout(() => { 
-                        location.reload(); 
-                    }, 2000);
-                } else {
-                    throw new Error();
-                }
+                document.getElementById('msg').style.display = "block";
+                
+                // Limpiar formulario tras 2.5 segundos para nueva entrada
+                setTimeout(() => { location.reload(); }, 2500);
+                
             } catch (e) {
-                alert("Error al conectar con Make. Revisa tu conexión.");
+                alert("Error de conexión con el servidor.");
                 btn.disabled = false;
-                btn.innerText = "Guardar en Bitácora";
+                btn.innerText = "Guardar y Enviar Acuse";
             }
         }
     </script>
