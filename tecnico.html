@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Técnico - SEDIF</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; --ecala: #8e44ad; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; margin: 0; }
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+        .welcome { color: #7f8c8d; font-size: 1.1em; margin-bottom: 30px; font-weight: bold; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+        .btn { display: block; background: var(--primary); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; transition: 0.3s; font-size: 0.9em; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn-express { background: var(--ecala); font-size: 1em; padding: 18px; margin-bottom: 30px; border: 2px solid #9b59b6; }
+        
+        .logout-container { margin-top: 50px; }
+        .btn-logout { background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: bold; text-decoration: underline; font-size: 1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Mi Área de Trabajo TIC</h2>
+        <div class="welcome" id="saludo">Hola, Técnico</div>
+
+        <a href="ibreves.html" class="btn btn-express">📝 Registrar Nueva Incidencia Express</a>
+        
+        <h3 style="color:var(--primary); text-align:left; border-left: 4px solid var(--accent); padding-left: 10px; font-size:1em;">MIS BANDEJAS ASIGNADAS</h3>
+        
+        <div class="grid" id="botones-historial">
+            </div>
+
+        <div class="logout-container">
+            <button onclick="logout()" class="btn-logout">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <script>
+        // SEGURIDAD: Solo técnicos pueden estar aquí
+        if(localStorage.getItem('userRole') !== 'tecnico') { window.location.href = "index.html"; }
+
+        // Diccionario Maestro de Hoja 3
+        const dictNombres = {
+            1: "Mtr. Gabriel Terrazas", 2: "Lic. Miguel Chavez", 3: "Lic. Eduardo Perez",
+            4: "Lic. Martin Alejandro Reyes Bocanegra", 5: "Fati", 6: "Mtr. Gabriel - Lic. Eduardo",
+            7: "Mtr. Gabriel - Lic. Miguel", 8: "Lic. Miguel - Lic. Eduardo", 9: "Lic. Eduardo - Lic. Alejandro",
+            10: "Lic. Miguel - Lic. Alejandro", 11: "Mtr. Gabriel - Lic. Alejandro", 12: "Lic. Luis Carlos",
+            13: "Lic. Luis Carlos - Lic. Alejandro", 14: "Lic. Luis Carlos - Lic. Eduardo",
+            15: "Lic. Luis Carlos - Lic. Miguel", 16: "Lic. Luis Carlos - Mtr. Gabriel"
+        };
+
+        // Cargar datos del técnico logueado
+        const nombreTecnico = localStorage.getItem('userName');
+        document.getElementById('saludo').innerText = "Hola, " + nombreTecnico;
+
+        const accesosStr = localStorage.getItem('userAccesos');
+        const accesos = JSON.parse(accesosStr || "[]");
+
+        const contenedorBotones = document.getElementById('botones-historial');
+
+        // Generar botones dinámicamente
+        if (accesos.length === 0) {
+            contenedorBotones.innerHTML = "<p>No tienes bandejas asignadas.</p>";
+        } else {
+            accesos.forEach(idMenu => {
+                const nombreHistorial = dictNombres[idMenu];
+                if(nombreHistorial) {
+                    const btn = document.createElement('a');
+                    btn.href = `historial.html?nombre=${encodeURIComponent(nombreHistorial)}`;
+                    btn.className = 'btn';
+                    btn.innerHTML = `📋 Bandeja: ${nombreHistorial}`;
+                    contenedorBotones.appendChild(btn);
+                }
+            });
+        }
+
+        function logout() { 
+            if(confirm("¿Deseas cerrar tu sesión?")) { 
+                localStorage.clear(); 
+                window.location.href = "index.html"; 
+            } 
+        }
+    </script>
+</body>
+</html>
