@@ -64,7 +64,10 @@
     </div>
 
     <script>
-        if (localStorage.getItem('adminSession') === 'active') { document.getElementById('admin-back-btn').style.display = 'block'; }
+        // --- AQUÍ ESTÁ EL CAMBIO PARA MOSTRAR EL BOTÓN AL ADMIN ---
+        if (localStorage.getItem('userRole') === 'admin') { 
+            document.getElementById('admin-back-btn').style.display = 'block'; 
+        }
 
         const params = new URLSearchParams(window.location.search);
         const tId = params.get('id');
@@ -104,7 +107,6 @@
                         nombreNuevo: nombreNuevo,
                         idNuevo: idNuevo,
                         comentarios: comentariosAdmin,
-                        // ENVÍO DE DATOS EXTRA PARA EL CORREO HERMOSO
                         usuario: document.getElementById('user-name').innerText,
                         problema: document.getElementById('user-prob').innerText
                     })
