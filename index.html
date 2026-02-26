@@ -3,77 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Privado TIC - SEDIF</title>
+    <title>Login - Sistema TIC SEDIF</title>
     <style>
         :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        h2 { color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
-        .btn { display: block; background: var(--accent); color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; transition: 0.3s; border: none; width: 100%; cursor: pointer; text-align: center; box-sizing: border-box; font-size: 1.1em; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 1em; }
-        #loading { display: none; color: var(--accent); font-weight: bold; margin-bottom: 15px; }
-        #error { color: #e74c3c; display: none; font-size: 0.85em; margin-bottom: 15px; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 3px solid var(--accent); padding-bottom: 10px; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1em; }
+        input:focus { border-color: var(--accent); outline: none; }
+        button { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1.1em; cursor: pointer; transition: 0.3s; }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+        #error-msg { color: #e74c3c; font-weight: bold; margin-top: 15px; display: none; }
+        .logo { font-size: 3em; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2 id="titulo">Acceso Privado TIC</h2>
-        <div id="login-form">
-            <div id="loading">Verificando credenciales...</div>
-            <p id="error">Usuario o contraseña incorrectos</p>
-            <input type="text" id="user" placeholder="Nombre de usuario">
-            <input type="password" id="pass" placeholder="Contraseña">
-            <button class="btn" onclick="login()">Entrar al Sistema</button>
-        </div>
+
+    <div class="login-box">
+        <div class="logo">🔐</div>
+        <h2>Acceso TIC SEDIF</h2>
+        <form id="loginForm" onsubmit="iniciarSesion(event)">
+            <input type="text" id="user" placeholder="Usuario" required autocomplete="off">
+            <input type="password" id="pass" placeholder="Contraseña" required>
+            <button type="submit">Ingresar al Sistema</button>
+        </form>
+        <p id="error-msg">Usuario o contraseña incorrectos.</p>
     </div>
 
     <script>
-        const webhookLogin = 'https://hook.us2.make.com/g2o6bagpnddob1127nhxqpwc7t6sdadx';
+        // BASE DE DATOS DE USUARIOS (Basada en tu Hoja 2)
+        const dbUsuarios = {
+            "gabo": { pass: "2518", nombre: "Mtr. Gabriel Terrazas", rol: "admin", accesos: [] },
+            "mike": { pass: "123", nombre: "Lic. Miguel Chavez", rol: "tecnico", accesos: [2, 7, 8, 10, 15] },
+            "lalo": { pass: "123", nombre: "Lic. Eduardo Perez", rol: "tecnico", accesos: [3, 6, 8, 9, 14] },
+            "alex": { pass: "123", nombre: "Lic. Martin Alejandro Reyes Bocanegra", rol: "tecnico", accesos: [4, 9, 10, 11, 13] },
+            "fati": { pass: "123", nombre: "Fati", rol: "tecnico", accesos: [5] },
+            "luis": { pass: "123", nombre: "Lic. Luis Carlos", rol: "tecnico", accesos: [12, 13, 14, 15, 16] }
+        };
 
-        async function login() {
-            const u = document.getElementById('user').value.trim();
-            const p = document.getElementById('pass').value;
-            const loader = document.getElementById('loading');
-            const errorMsg = document.getElementById('error');
+        function iniciarSesion(e) {
+            e.preventDefault();
+            const u = document.getElementById('user').value.toLowerCase().trim();
+            const p = document.getElementById('pass').value.trim();
 
-            if(!u || !p) {
-                alert("Por favor, ingresa tus datos.");
-                return;
-            }
-
-            loader.style.display = "block";
-            errorMsg.style.display = "none";
-
-            try {
-                const response = await fetch(webhookLogin, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user: u, pass: p })
-                });
+            if (dbUsuarios[u] && dbUsuarios[u].pass === p) {
+                const usuarioData = dbUsuarios[u];
                 
-                const data = await response.json();
+                // Entregar llaves maestras en el navegador
+                localStorage.setItem('userRole', usuarioData.rol);
+                localStorage.setItem('userName', usuarioData.nombre);
+                localStorage.setItem('userAccesos', JSON.stringify(usuarioData.accesos));
 
-                if(data.auth === true || data.auth === "true") {
-                    // LÓGICA DE DIRECCIONAMIENTO
-                    const usuarioMinuscula = u.toLowerCase();
-                    
-                    // Si el nombre contiene "Gabriel", es el administrador
-                    if (usuarioMinuscula.includes("gabriel") || usuarioMinuscula === "admin") {
-                        localStorage.setItem('adminSession', 'active');
-                        window.location.href = "admin.html";
-                    } else {
-                        // Cualquier otro nombre va directo a su historial técnico
-                        window.location.href = "historial.html?nombre=" + encodeURIComponent(u);
-                    }
+                // Redirigir según el nivel
+                if (usuarioData.rol === 'admin') {
+                    window.location.href = 'admin.html';
                 } else {
-                    errorMsg.style.display = "block";
+                    window.location.href = 'tecnico.html';
                 }
-            } catch (e) {
-                alert("Error de conexión. Verifica el escenario de Make.");
-            } finally {
-                loader.style.display = "none";
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
             }
+        }
+
+        // Si ya hay sesión iniciada, saltar el login
+        window.onload = function() {
+            const role = localStorage.getItem('userRole');
+            if (role === 'admin') window.location.href = 'admin.html';
+            if (role === 'tecnico') window.location.href = 'tecnico.html';
         }
     </script>
 </body>
