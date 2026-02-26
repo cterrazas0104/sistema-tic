@@ -13,7 +13,8 @@
         th { background: #f8f9fa; text-align: left; padding: 12px; font-size: 0.85em; color: #777; }
         td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.9em; }
         .dept-tag { color: #7f8c8d; font-size: 0.85em; display: block; margin-top: 4px; font-style: italic; }
-        .btn-asignar { background: var(--accent); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85em; display: inline-block; }
+        .btn-asignar { background: var(--accent); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85em; display: inline-block; transition: 0.3s; }
+        .btn-asignar:hover { opacity: 0.9; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -41,13 +42,18 @@
     </div>
 
     <script>
-        // VERIFICAR SESIÓN DE ADMINISTRADOR
-        if (localStorage.getItem('adminSession') === 'active') {
+        // --- AQUÍ ESTÁ EL CAMBIO DE SEGURIDAD RBAC ---
+        if (localStorage.getItem('userRole') === 'admin') {
             document.getElementById('admin-back-btn').style.display = 'block';
+        } else {
+            // Si un técnico o alguien sin permiso intenta entrar aquí, lo expulsamos al login
+            window.location.href = "index.html"; 
         }
 
         async function cargar() {
+            // URL DE TU APPS SCRIPT WEB APP
             const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
+            
             try {
                 const res = await fetch(webhookURL + "?nombre=SIN_ASIGNAR");
                 const data = await res.json();
