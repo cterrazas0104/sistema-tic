@@ -20,6 +20,13 @@
 </head>
 <body>
     <div class="card">
+        
+        <div id="admin-back-btn" style="display: none; text-align: left; margin-bottom: 20px;">
+            <a href="pendientes.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">
+                ← Volver a Pendientes
+            </a>
+        </div>
+
         <h2>Asignar Ticket #<span id="ticket-id"></span></h2>
         <div class="info">
             <p><strong>Usuario:</strong> <span id="user-name"></span></p>
@@ -65,6 +72,11 @@
     </div>
 
     <script>
+        // --- AQUÍ ESTÁ EL CAMBIO PARA MOSTRAR EL BOTÓN AL ADMIN ---
+        if (localStorage.getItem('userRole') === 'admin') { 
+            document.getElementById('admin-back-btn').style.display = 'block'; 
+        }
+
         const params = new URLSearchParams(window.location.search);
         const tId = params.get('id');
         
@@ -98,7 +110,6 @@
                         nombreTecnico: nombreCompleto,
                         modalidad: document.getElementById('modalidad-final').value,
                         comentarios: document.getElementById('comentarios').value,
-                        // ENVÍO DE DATOS EXTRA PARA EL CORREO HERMOSO
                         usuario: document.getElementById('user-name').innerText,
                         ubicacion: document.getElementById('user-loc').innerText,
                         problema: document.getElementById('user-prob').innerText
