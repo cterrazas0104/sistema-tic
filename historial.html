@@ -10,7 +10,6 @@
         .container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 0; font-size: 1.4em; }
         
-        /* Diseño Responsivo para Móviles */
         @media screen and (max-width: 600px) {
             table, thead, tbody, th, td, tr { display: block; }
             thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -32,15 +31,14 @@
         .btn-resolver { color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9em; font-weight: bold; display: inline-block; transition: 0.3s; text-align: center; }
         .btn-active { background: var(--accent); }
         .btn-view { background: #95a5a6; }
+        .back-btn { background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22; display: inline-block; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
         
-        <div id="admin-back-btn" style="display: none; text-align: left; margin-bottom: 20px;">
-            <a href="admin.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">
-                ← Volver al Panel de Administrador
-            </a>
+        <div id="dynamic-back-btn" style="display: none; text-align: left;">
+            <a id="back-link" href="#" class="back-btn">← Volver</a>
         </div>
 
         <h2 id="saludo">Cargando Centro de Tickets...</h2>
@@ -60,12 +58,26 @@
         </div>
     </div>
 
-<script>
-        if (localStorage.getItem('adminSession') === 'active') { document.getElementById('admin-back-btn').style.display = 'block'; }
-        
+    <script>
+        // --- LÓGICA DEL BOTÓN DE REGRESO BASADO EN ROLES ---
+        const userRole = localStorage.getItem('userRole');
+        const backBtnDiv = document.getElementById('dynamic-back-btn');
+        const backLink = document.getElementById('back-link');
+
+        if (userRole === 'admin') {
+            backBtnDiv.style.display = 'block';
+            backLink.href = 'admin.html';
+            backLink.innerText = '← Volver al Panel de Administrador';
+        } else if (userRole === 'tecnico') {
+            backBtnDiv.style.display = 'block';
+            backLink.href = 'tecnico.html';
+            backLink.innerText = '← Volver a Mi Área de Trabajo';
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const tecnicoNombre = urlParams.get('nombre');
         
+        // URL DE TU APPS SCRIPT
         const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec'; 
         
         if (tecnicoNombre) {
@@ -90,9 +102,7 @@
                     return;
                 }
 
-                // =========================================================
-                // LÓGICA DE ORDENAMIENTO (Pendientes arriba, Concluidos abajo)
-                // =========================================================
+                // LÓGICA DE ORDENAMIENTO (Pendientes Arriba)
                 ticketsValidos.sort((a, b) => {
                     const getStatus = (t) => (t.Estado || t.estado || 'Pendiente').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                     const terminados = ["concluido", "revision", "evaluado", "finalizado", "resuelto"];
@@ -100,17 +110,13 @@
                     const isConcluidoA = terminados.includes(getStatus(a));
                     const isConcluidoB = terminados.includes(getStatus(b));
 
-                    // Si A es concluido y B no, A va abajo
                     if (isConcluidoA && !isConcluidoB) return 1;
-                    // Si A es pendiente y B es concluido, A va arriba
                     if (!isConcluidoA && isConcluidoB) return -1;
 
-                    // Si ambos son iguales (ambos pendientes o ambos concluidos), los ordenamos por ID para que los más nuevos salgan primero
                     const idA = parseInt((a.ID || a.id || '0').toString().replace(/\D/g, '')) || 0;
                     const idB = parseInt((b.ID || b.id || '0').toString().replace(/\D/g, '')) || 0;
-                    return idB - idA; // Mayor a menor
+                    return idB - idA;
                 });
-                // =========================================================
 
                 ticketsValidos.forEach(t => {
                     const tid = t.ID || t.id || 'S/N';
