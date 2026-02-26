@@ -81,17 +81,20 @@
         </div>
     </div>
 
-    <script>
-        // SEGURIDAD
-        if(localStorage.getItem('adminSession') !== 'active') { window.location.href = "index.html"; }
+   <script>
+        // NUEVA SEGURIDAD RBAC: Solo Admin puede estar aquí
+        if(localStorage.getItem('userRole') !== 'admin') { 
+            window.location.href = "index.html"; 
+        }
         
         function logout() { 
-            if(confirm("¿Estás seguro?")) { 
-                localStorage.removeItem('adminSession'); 
+            if(confirm("¿Estás seguro de cerrar sesión de Administrador?")) { 
+                localStorage.clear(); 
                 window.location.href = "index.html"; 
             } 
         }
 
+        // --- (AQUÍ DEBAJO SIGUE TU CÓDIGO NORMAL DEL MONITOR) ---
         const diccionarioTecnicos = {
             "1": "Mtr. Gabriel Terrazas", "2": "Lic. Miguel Chavez", "3": "Lic. Eduardo Perez",
             "4": "Lic. Martin Alejandro Reyes Bocanegra", "5": "Fati", "6": "Mtr. Gabriel - Lic. Eduardo",
