@@ -58,9 +58,9 @@
                 const res = await fetch(`${scriptURL}?accion=login&u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}`);
                 const data = await res.json();
 
-if (data.valid) {
-                    // Guardamos todas las credenciales
-                    localStorage.setItem('userLogin', u); // <--- NUEVO: Guarda el usuario corto
+                if (data.valid) {
+                    // Guardamos todas las credenciales, incluyendo el usuario corto para poder cambiar la contraseña luego
+                    localStorage.setItem('userLogin', u);
                     localStorage.setItem('userRole', data.rol);
                     localStorage.setItem('userName', data.nombre);
                     localStorage.setItem('userAccesos', JSON.stringify(data.accesos));
