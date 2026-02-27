@@ -227,6 +227,9 @@
         
         // Iniciar todo
         cargarDashboard();
+// 2. Programar recarga automática cada 5 minutos (300,000 milisegundos)
+        // Si prefieres cada 3 minutos, pon 180000. Si prefieres cada 1 minuto, pon 60000.
+        setInterval(cargarDashboard, 60000); 
     </script>
 </body>
 </html>
