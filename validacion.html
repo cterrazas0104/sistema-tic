@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validación de Tickets - Jefe TIC</title>
     <style>
-        /* ... (Usa los mismos estilos de tu historial.html para mantener consistencia) ... */
-        :root { --primary: #2c3e50; --accent: #9b59b6; --bg: #f4f7f6; } /* Color morado para validación */
+        :root { --primary: #2c3e50; --accent: #9b59b6; --bg: #f4f7f6; } 
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
         .header { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         h2 { margin: 0; color: var(--primary); }
@@ -18,8 +17,9 @@
         .tech-name { background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; color: #555; }
         .info-row { margin: 5px 0; color: #555; font-size: 0.95em; }
         .solution-box { background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 0.9em; border: 1px solid #eee; }
-        .btn-validate { display: block; width: 100%; text-align: center; background: var(--accent); color: white; padding: 10px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 15px; }
+        .btn-validate { display: block; width: 100%; text-align: center; background: var(--accent); color: white; padding: 10px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 15px; cursor: pointer; border: none; font-size: 1em;}
         .btn-validate:hover { background: #8e44ad; }
+        .btn-validate:disabled { background: #ccc; cursor: not-allowed; }
         #loader { text-align: center; margin-top: 50px; color: #777; }
     </style>
 </head>
@@ -34,16 +34,14 @@
     <div id="tickets-container"></div>
 
     <script>
-        // Diccionario de Técnicos (Copia del panel.html)
         const diccionarioTecnicos = {
             "1": "Gabriel Terrazas", "2": "Miguel Chavez", "3": "Eduardo Perez",
             "4": "Alejandro Reyes", "5": "Fati", "12": "Luis Carlos"
-            // ... (Agrega los combos si quieres)
         };
 
         async function cargarPendientes() {
-            // Usamos tu Apps Script existente con un parámetro especial
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec?accion=buscar_revision'; 
+            // Se le agrega un timestamp al final para evitar que el navegador guarde la caché
+            const scriptURL = `https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec?accion=buscar_revision&t=${new Date().getTime()}`; 
 
             try {
                 const response = await fetch(scriptURL);
@@ -57,8 +55,11 @@
                     return;
                 }
 
+                container.innerHTML = ""; // Limpia el contenedor antes de dibujar
+
                 data.forEach(ticket => {
                     const nombreTecnico = diccionarioTecnicos[ticket.tecnico_id] || "Técnico #" + ticket.tecnico_id;
+                    const urlMake = `https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21?ticket=${ticket.id}&usuario=${encodeURIComponent(ticket.usuario)}`;
                     
                     const card = document.createElement('div');
                     card.className = 'card';
@@ -75,10 +76,9 @@
                             ${ticket.solucion}
                         </div>
 
-                        <a href="https://hook.us2.make.com/fpndkbyluum7qzuh5l3z15s6xq9fli21?ticket=${ticket.id}&usuario=${encodeURIComponent(ticket.usuario)}" 
-                           class="btn-validate" target="_blank">
-                           Aprobar y Enviar Encuesta
-                        </a>
+                        <button class="btn-validate" onclick="aprobarTicket(this, '${urlMake}')">
+                            Aprobar y Enviar Encuesta
+                        </button>
                     `;
                     container.appendChild(card);
                 });
@@ -87,6 +87,22 @@
                 console.error(error);
                 document.getElementById('loader').innerText = "Error al cargar datos.";
             }
+        }
+
+        function aprobarTicket(botonElemento, urlTarget) {
+            // 1. Deshabilitar el botón para que no le den doble clic
+            botonElemento.disabled = true;
+            botonElemento.innerText = "Procesando...";
+
+            // 2. Abrir la orden de Make en una pestaña nueva (invisible o rápida)
+            window.open(urlTarget, '_blank');
+
+            // 3. Esperar 3 segundos y recargar los tickets de la página
+            setTimeout(() => {
+                document.getElementById('tickets-container').innerHTML = "";
+                document.getElementById('loader').style.display = 'block';
+                cargarPendientes();
+            }, 3000);
         }
 
         cargarPendientes();
