@@ -93,7 +93,6 @@
     <script>
         if(localStorage.getItem('userRole') !== 'tecnico') { window.location.href = "index.html"; }
 
-        // 👇 LA NUEVA URL DE APPS SCRIPT AQUÍ 👇
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
 
         const dictNombres = {
@@ -153,7 +152,7 @@
                 ticketsActivos.sort((a, b) => parseInt(b.ID||b.id||'0'.replace(/\D/g,'')) - parseInt(a.ID||a.id||'0'.replace(/\D/g,'')));
 
                 if(ticketsActivos.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:green;">🎉 No tienes tickets pendientes.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:green; font-weight:bold;">🎉 ¡Excelente! No tienes tickets pendientes en ninguna de tus bandejas.</td></tr>';
                     return;
                 }
 
@@ -171,9 +170,17 @@
                         <td data-label="Acción"><a href="${linkReporte}" class="btn-resolver">Resolver</a></td>
                     </tr>`;
                 });
-            } catch (e) { tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error cargando pendientes.</td></tr>'; }
+            } catch (e) { 
+                console.error(e);
+                // Si hay un pequeño error de red, no borramos la tabla, solo esperamos al siguiente ciclo
+            }
         }
+        
+        // Cargar al inicio
         cargarGlobales();
+
+        // RECARGA AUTOMÁTICA CADA 5 MINUTOS (300,000 ms)
+        setInterval(cargarGlobales, 300000);
 
         // --- LÓGICA DEL MODAL DE CONTRASEÑA ---
         function abrirModalPass() { document.getElementById('modalPass').style.display = 'flex'; }
