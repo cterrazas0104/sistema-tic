@@ -21,6 +21,7 @@
         .bg-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
         .bg-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
         .bg-green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .bg-dark { background: linear-gradient(135deg, #34495e, #2c3e50); } /* Nuevo color para Express */
 
         /* GRÁFICO Y TABLA */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; margin-bottom: 40px; }
@@ -73,6 +74,10 @@
                 <h3 id="kpi-concluidos">--</h3>
                 <p>Concluidos</p>
             </div>
+            <div class="kpi-card bg-dark">
+                <h3 id="kpi-ibreves">--</h3>
+                <p>Total Express</p>
+            </div>
         </div>
 
         <div class="dashboard-grid">
@@ -94,14 +99,15 @@
             </div>
         </div>
 
-
-<div class="grid">
+        <div class="grid">
             <div class="section-title">Operación Diaria</div>
             <a href="pendientes.html" class="btn btn-main">📩 Pendientes de Asignación</a>
             <a href="ibreves.html" class="btn btn-ecala">📝 Registrar Incidencia Express</a>
+            
             <a href="https://docs.google.com/spreadsheets/d/1I1cTeHiKZ3y2AFmNpZoh1QLQQRX-mwv6PQlxpfXD-nA/edit" target="_blank" class="btn" style="background: #34495e; border: 2px solid #2c3e50;">📖 Auditar Bitácora Express</a>
+            
             <a href="validacion.html" class="btn" style="background: #9b59b6; border: 2px solid #8e44ad;">✅ Tickets por Validar</a>
-            <a href="https://docs.google.com/spreadsheets/d/1I1cTeHiKZ3y2AFmNpZoh1QLQQRX-mwv6PQlxpfXD-nA/edit?gid=0#gid=0" target="_blank" class="btn btn-accent">📊 Base de Datos Completa</a>       
+            <a href="https://docs.google.com/spreadsheets/d/1I1cTeHiKZ3y2AFmNpZoh1QLQQRX-mwv6PQlxpfXD-nA/edit?gid=0#gid=0" target="_blank" class="btn btn-accent">📊 Base de Datos Completa</a>
             
             <div class="section-title">Bandejas Individuales</div>
             <a href="historial.html?nombre=Mtr. Gabriel Terrazas" class="btn">📋 Gabriel Terrazas</a>
@@ -149,21 +155,21 @@
             "15": "Luis Carlos - Miguel", "16": "Luis Carlos - Mtr. Gabriel"
         };
 
-        // 👇 LA URL DE TU APPS SCRIPT 👇
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
 
-        let miGrafico; // Variable global para el gráfico
+        let miGrafico; 
 
         async function cargarDashboard() {
             try {
                 const res = await fetch(`${scriptURL}?accion=dashboard&t=${new Date().getTime()}`);
                 const data = await res.json();
                 
-                // 1. LLENAR LOS KPIs
+                // 1. LLENAR LOS KPIs (AHORA SON 5)
                 document.getElementById('kpi-pendientes').innerText = data.pendientes;
                 document.getElementById('kpi-atendiendo').innerText = data.atendiendo;
                 document.getElementById('kpi-revision').innerText = data.revision;
                 document.getElementById('kpi-concluidos').innerText = data.concluidos;
+                document.getElementById('kpi-ibreves').innerText = data.totalIbreves || 0; // <-- AÑADIDO
 
                 // 2. LLENAR LA TABLA DEL MONITOR
                 const body = document.getElementById('monitor-body');
@@ -188,7 +194,6 @@
                 // 3. RENDERIZAR EL GRÁFICO (Top 5 con más carga)
                 const ctx = document.getElementById('miGrafico').getContext('2d');
                 
-                // Preparar datos para el gráfico
                 let labelsCarga = [];
                 let datosCarga = [];
                 
@@ -197,7 +202,7 @@
                     datosCarga.push(count);
                 }
 
-                if(miGrafico) miGrafico.destroy(); // Destruir gráfico viejo si se recarga
+                if(miGrafico) miGrafico.destroy(); 
                 
                 miGrafico = new Chart(ctx, {
                     type: 'bar',
@@ -229,8 +234,8 @@
         
         // Iniciar todo
         cargarDashboard();
-// 2. Programar recarga automática cada 5 minutos (300,000 milisegundos)
-        // Si prefieres cada 3 minutos, pon 180000. Si prefieres cada 1 minuto, pon 60000.
+        
+        // Recarga automática cada 1 minuto (60000 milisegundos)
         setInterval(cargarDashboard, 60000); 
     </script>
 </body>
