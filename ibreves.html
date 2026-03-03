@@ -108,9 +108,15 @@
             document.getElementById(id).value = `${horas}:${minutos}`;
         }
 
+        // --- CANDADO ANTI-DOBLE CLIC ---
+        let enviandoRegistro = false; 
+
         async function enviarIncidencia() {
-            const btn = document.getElementById('btn-enviar');
-            // 👇 PEGA AQUÍ TU URL NUEVA DE APPS SCRIPT 👇
+            // Si el candado está activo (ya se dio clic), ignora cualquier otro clic
+            if (enviandoRegistro === true) {
+                return; 
+            }
+
             const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
          
             const data = {
@@ -126,12 +132,15 @@
                 tecnico: document.getElementById('tecnico').value
             };
 
-            // VALIDACIÓN ESTRICTA: AHORA EL CORREO ES OBLIGATORIO
+            // Validación estricta
             if(!data.usuario || !data.correo || !data.problema || !data.inicio || !data.apoyo) {
                 alert("Por favor completa todos los campos obligatorios (*), incluyendo el Correo del Usuario.");
                 return;
             }
 
+            // ACTIVA EL CANDADO y deshabilita el botón
+            enviandoRegistro = true; 
+            const btn = document.getElementById('btn-enviar');
             btn.disabled = true;
             btn.innerText = "Guardando y enviando correo...";
 
@@ -145,11 +154,13 @@
 
                 document.getElementById('msg').style.display = "block";
                 
-                // Limpiar formulario tras 2.5 segundos para nueva entrada
+                // Recargar página para limpiar todo (aquí se quita el candado automáticamente)
                 setTimeout(() => { location.reload(); }, 2500);
                 
             } catch (e) {
                 alert("Error de conexión con el servidor.");
+                // Si hubo un error, desactivamos el candado para que intenten de nuevo
+                enviandoRegistro = false; 
                 btn.disabled = false;
                 btn.innerText = "Guardar y Enviar Acuse";
             }
