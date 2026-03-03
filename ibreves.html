@@ -43,9 +43,9 @@
             <button type="button" class="btn-now" onclick="setHora('hora-inicio')">Ahora</button>
         </div>
 
-        <label>Hora Fin: <span class="req">*</span></label>
+        <label>Hora Fin:</label>
         <div class="row">
-            <input type="time" id="hora-fin">
+            <input type="time" id="hora-fin" placeholder="Si se deja vacío, se usará la hora actual al guardar">
             <button type="button" class="btn-now" onclick="setHora('hora-fin')">Ahora</button>
         </div>
 
@@ -119,11 +119,20 @@
 
             const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
          
+            // NUEVO: Lógica inteligente para "Hora Fin"
+            let horaFin = document.getElementById('hora-fin').value;
+            if (!horaFin) {
+                const ahora = new Date();
+                const horas = String(ahora.getHours()).padStart(2, '0');
+                const minutos = String(ahora.getMinutes()).padStart(2, '0');
+                horaFin = `${horas}:${minutos}`;
+            }
+
             const data = {
                 accion: "guardar_ibreve", 
                 fecha: document.getElementById('fecha').value,
                 inicio: document.getElementById('hora-inicio').value,
-                fin: document.getElementById('hora-fin').value,
+                fin: horaFin, // Usamos la variable inteligente
                 usuario: document.getElementById('usuario').value,
                 correo: document.getElementById('correo').value,
                 area: document.getElementById('area').value,
@@ -132,7 +141,7 @@
                 tecnico: document.getElementById('tecnico').value
             };
 
-            // Validación estricta
+            // Validación estricta (ya no exigimos hora-fin aquí)
             if(!data.usuario || !data.correo || !data.problema || !data.inicio || !data.apoyo) {
                 alert("Por favor completa todos los campos obligatorios (*), incluyendo el Correo del Usuario.");
                 return;
