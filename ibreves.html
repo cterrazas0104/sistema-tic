@@ -23,7 +23,7 @@
         button:disabled { background: #ccc; cursor: not-allowed; }
 
         #msg { display: none; text-align: center; color: #27ae60; font-weight: bold; margin-top: 15px; padding: 10px; border: 1px solid #27ae60; border-radius: 8px; background: #e6fcf5; }
-        .req { color: #e74c3c; } /* Asterisco rojo para obligatorios */
+        .req { color: #e74c3c; } 
         
         .back-link { display: block; text-align: center; margin-bottom: 20px; color: #7f8c8d; text-decoration: none; font-size: 0.9em; font-weight: bold; }
         .back-link:hover { color: var(--primary); }
@@ -45,7 +45,7 @@
 
         <label>Hora Fin:</label>
         <div class="row">
-            <input type="time" id="hora-fin" placeholder="Si se deja vacío, se usará la hora actual al guardar">
+            <input type="time" id="hora-fin" placeholder="Si se deja vacío, se usará la hora actual">
             <button type="button" class="btn-now" onclick="setHora('hora-fin')">Ahora</button>
         </div>
 
@@ -55,8 +55,11 @@
         <label>Correo del Usuario: <span class="req">*</span></label>
         <input type="email" id="correo" placeholder="ejemplo@queretaro.gob.mx" required>
 
-        <label>Área:</label>
-        <input type="text" id="area" placeholder="Ej: Adquisiciones, Finanzas...">
+        <label>Área: <span class="req">*</span></label>
+        <select id="area-select" onchange="verificarAreaOtro()">
+            <option value="" disabled selected>Cargando catálogo...</option>
+        </select>
+        <input type="text" id="area-otro" placeholder="Escribe el nombre de la nueva Área..." style="display: none; margin-top: 10px; border-color: #e67e22;">
 
         <label>Descripción del Problema: <span class="req">*</span></label>
         <textarea id="problema" rows="2" placeholder="Ej: No imprime, equipo lento..."></textarea>
@@ -79,7 +82,9 @@
     </div>
 
     <script>
-        // --- Configurar Panel de Regreso y Técnico por Defecto ---
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
+
+        // --- Configurar Panel de Regreso ---
         const userRole = localStorage.getItem('userRole');
         const userName = localStorage.getItem('userName');
         const linkVolver = document.getElementById('link-volver');
@@ -98,7 +103,6 @@
             }
         }
 
-        // Poner fecha de hoy por defecto
         document.getElementById('fecha').valueAsDate = new Date();
 
         function setHora(id) {
@@ -108,46 +112,80 @@
             document.getElementById(id).value = `${horas}:${minutos}`;
         }
 
-        // --- CANDADO ANTI-DOBLE CLIC ---
+        // --- MAGIA DEL CATÁLOGO DINÁMICO ---
+        async function cargarCatalogoAreas() {
+            const selectArea = document.getElementById('area-select');
+            try {
+                const res = await fetch(scriptURL + "?accion=obtener_areas");
+                const areas = await res.json();
+                
+                selectArea.innerHTML = '<option value="" disabled selected>Selecciona un área...</option>';
+                
+                areas.forEach(a => {
+                    let option = document.createElement('option');
+                    option.value = a;
+                    option.text = a;
+                    selectArea.appendChild(option);
+                });
+                
+                selectArea.innerHTML += '<option value="OTRO" style="font-weight:bold; color:#e67e22;">+ AGREGAR OTRA ÁREA...</option>';
+            } catch (e) {
+                selectArea.innerHTML = '<option value="OTRO">Error de conexión. Selecciona aquí para escribir manual.</option>';
+            }
+        }
+
+        function verificarAreaOtro() {
+            const select = document.getElementById('area-select');
+            const inputOtro = document.getElementById('area-otro');
+            if (select.value === "OTRO") {
+                inputOtro.style.display = "block";
+                inputOtro.focus();
+            } else {
+                inputOtro.style.display = "none";
+                inputOtro.value = "";
+            }
+        }
+
+        // Cargamos las áreas apenas se abre la página
+        cargarCatalogoAreas();
+
+
+        // --- ENVÍO DE DATOS ---
         let enviandoRegistro = false; 
 
         async function enviarIncidencia() {
-            // Si el candado está activo (ya se dio clic), ignora cualquier otro clic
-            if (enviandoRegistro === true) {
-                return; 
-            }
-
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
+            if (enviandoRegistro === true) return; 
          
-            // NUEVO: Lógica inteligente para "Hora Fin"
             let horaFin = document.getElementById('hora-fin').value;
             if (!horaFin) {
                 const ahora = new Date();
-                const horas = String(ahora.getHours()).padStart(2, '0');
-                const minutos = String(ahora.getMinutes()).padStart(2, '0');
-                horaFin = `${horas}:${minutos}`;
+                horaFin = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+            }
+
+            // Validar cuál área se va a guardar
+            let areaFinal = document.getElementById('area-select').value;
+            if (areaFinal === "OTRO") {
+                areaFinal = document.getElementById('area-otro').value.trim().toUpperCase();
             }
 
             const data = {
                 accion: "guardar_ibreve", 
                 fecha: document.getElementById('fecha').value,
                 inicio: document.getElementById('hora-inicio').value,
-                fin: horaFin, // Usamos la variable inteligente
+                fin: horaFin, 
                 usuario: document.getElementById('usuario').value,
                 correo: document.getElementById('correo').value,
-                area: document.getElementById('area').value,
+                area: areaFinal, // Mandamos el área ya procesada
                 problema: document.getElementById('problema').value,
                 apoyo: document.getElementById('apoyo').value,
                 tecnico: document.getElementById('tecnico').value
             };
 
-            // Validación estricta (ya no exigimos hora-fin aquí)
-            if(!data.usuario || !data.correo || !data.problema || !data.inicio || !data.apoyo) {
-                alert("Por favor completa todos los campos obligatorios (*), incluyendo el Correo del Usuario.");
+            if(!data.usuario || !data.correo || !data.problema || !data.inicio || !data.apoyo || !data.area) {
+                alert("Por favor completa todos los campos obligatorios (*), incluyendo el Área.");
                 return;
             }
 
-            // ACTIVA EL CANDADO y deshabilita el botón
             enviandoRegistro = true; 
             const btn = document.getElementById('btn-enviar');
             btn.disabled = true;
@@ -155,23 +193,15 @@
 
             try {
                 const response = await fetch(scriptURL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
+                    method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
                 });
 
                 document.getElementById('msg').style.display = "block";
-                
-                // Recargar página para limpiar todo (aquí se quita el candado automáticamente)
                 setTimeout(() => { location.reload(); }, 2500);
-                
             } catch (e) {
                 alert("Error de conexión con el servidor.");
-                // Si hubo un error, desactivamos el candado para que intenten de nuevo
                 enviandoRegistro = false; 
-                btn.disabled = false;
-                btn.innerText = "Guardar y Enviar Acuse";
+                btn.disabled = false; btn.innerText = "Guardar y Enviar Acuse";
             }
         }
     </script>
