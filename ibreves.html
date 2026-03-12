@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Incidencias Ecala - SEDIF</title>
+    <title>Incidencias Express - SEDIF</title>
     <style>
         :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 15px; display: flex; justify-content: center; margin: 0; }
@@ -27,6 +27,8 @@
         
         .back-link { display: block; text-align: center; margin-bottom: 20px; color: #7f8c8d; text-decoration: none; font-size: 0.9em; font-weight: bold; }
         .back-link:hover { color: var(--primary); }
+        
+        .input-manual { display: none; margin-top: 10px; border-color: #e67e22; background-color: #fffaf0; }
     </style>
 </head>
 <body>
@@ -49,17 +51,20 @@
             <button type="button" class="btn-now" onclick="setHora('hora-fin')">Ahora</button>
         </div>
 
+        <label>Área: <span class="req">*</span></label>
+        <select id="area-select" onchange="verificarArea()">
+            <option value="" disabled selected>Cargando catálogo...</option>
+        </select>
+        <input type="text" id="area-otro" class="input-manual" placeholder="Escribe el nombre de la nueva Área...">
+
         <label>Usuario / Solicitante: <span class="req">*</span></label>
-        <input type="text" id="usuario" placeholder="¿A quién apoyaste?">
+        <select id="usuario-select" onchange="verificarUsuario()" disabled>
+            <option value="" disabled selected>Primero selecciona un Área...</option>
+        </select>
+        <input type="text" id="usuario-otro" class="input-manual" placeholder="Escribe el nombre del nuevo Usuario...">
         
         <label>Correo del Usuario: <span class="req">*</span></label>
         <input type="email" id="correo" placeholder="ejemplo@queretaro.gob.mx" required>
-
-        <label>Área: <span class="req">*</span></label>
-        <select id="area-select" onchange="verificarAreaOtro()">
-            <option value="" disabled selected>Cargando catálogo...</option>
-        </select>
-        <input type="text" id="area-otro" placeholder="Escribe el nombre de la nueva Área..." style="display: none; margin-top: 10px; border-color: #e67e22;">
 
         <label>Descripción del Problema: <span class="req">*</span></label>
         <textarea id="problema" rows="2" placeholder="Ej: No imprime, equipo lento..."></textarea>
@@ -97,8 +102,7 @@
             const selectTecnico = document.getElementById('tecnico');
             for(let i=0; i<selectTecnico.options.length; i++) {
                 if(selectTecnico.options[i].value === userName || userName.includes(selectTecnico.options[i].value)) {
-                    selectTecnico.selectedIndex = i;
-                    break;
+                    selectTecnico.selectedIndex = i; break;
                 }
             }
         }
@@ -112,43 +116,88 @@
             document.getElementById(id).value = `${horas}:${minutos}`;
         }
 
-        // --- MAGIA DEL CATÁLOGO DINÁMICO ---
-        async function cargarCatalogoAreas() {
+        // --- MAGIA DEL CATÁLOGO EN CASCADA ---
+        let catalogoGlobal = {}; // Aquí guardamos todo lo que nos mande el servidor
+
+        async function cargarCatalogo() {
             const selectArea = document.getElementById('area-select');
             try {
-                const res = await fetch(scriptURL + "?accion=obtener_areas");
-                const areas = await res.json();
+                const res = await fetch(scriptURL + "?accion=obtener_catalogo");
+                catalogoGlobal = await res.json();
                 
                 selectArea.innerHTML = '<option value="" disabled selected>Selecciona un área...</option>';
                 
-                areas.forEach(a => {
+                const areasList = Object.keys(catalogoGlobal).sort();
+                areasList.forEach(a => {
                     let option = document.createElement('option');
-                    option.value = a;
-                    option.text = a;
+                    option.value = a; option.text = a;
                     selectArea.appendChild(option);
                 });
-                
-                selectArea.innerHTML += '<option value="OTRO" style="font-weight:bold; color:#e67e22;">+ AGREGAR OTRA ÁREA...</option>';
+                selectArea.innerHTML += '<option value="OTRO" style="font-weight:bold; color:#e67e22;">+ AGREGAR NUEVA ÁREA...</option>';
             } catch (e) {
-                selectArea.innerHTML = '<option value="OTRO">Error de conexión. Selecciona aquí para escribir manual.</option>';
+                selectArea.innerHTML = '<option value="OTRO">Error de conexión. Escribir manual.</option>';
             }
         }
 
-        function verificarAreaOtro() {
-            const select = document.getElementById('area-select');
-            const inputOtro = document.getElementById('area-otro');
-            if (select.value === "OTRO") {
-                inputOtro.style.display = "block";
-                inputOtro.focus();
+        // Se ejecuta al cambiar el Área
+        function verificarArea() {
+            const selectA = document.getElementById('area-select');
+            const inputAOtro = document.getElementById('area-otro');
+            const selectU = document.getElementById('usuario-select');
+            const inputUOtro = document.getElementById('usuario-otro');
+            const inCorreo = document.getElementById('correo');
+
+            // Reset de usuarios y correo
+            selectU.disabled = false;
+            selectU.innerHTML = '<option value="" disabled selected>Selecciona un usuario...</option>';
+            inputUOtro.style.display = "none"; inputUOtro.value = "";
+            inCorreo.value = "";
+
+            if (selectA.value === "OTRO") {
+                // Es un área nueva, por lo tanto el usuario también debe ser nuevo
+                inputAOtro.style.display = "block"; inputAOtro.focus();
+                selectU.innerHTML = '<option value="OTRO" selected>+ AGREGAR NUEVO USUARIO...</option>';
+                verificarUsuario(); // Forzamos mostrar el input manual de usuario
             } else {
-                inputOtro.style.display = "none";
-                inputOtro.value = "";
+                inputAOtro.style.display = "none"; inputAOtro.value = "";
+                // Llenamos los usuarios de esa área
+                const areaSel = selectA.value;
+                if (catalogoGlobal[areaSel]) {
+                    const usuariosArea = Object.keys(catalogoGlobal[areaSel]).sort();
+                    usuariosArea.forEach(u => {
+                        let option = document.createElement('option');
+                        option.value = u; option.text = u;
+                        selectU.appendChild(option);
+                    });
+                }
+                selectU.innerHTML += '<option value="OTRO" style="font-weight:bold; color:#e67e22;">+ AGREGAR NUEVO USUARIO...</option>';
             }
         }
 
-        // Cargamos las áreas apenas se abre la página
-        cargarCatalogoAreas();
+        // Se ejecuta al cambiar el Usuario
+        function verificarUsuario() {
+            const selectA = document.getElementById('area-select');
+            const selectU = document.getElementById('usuario-select');
+            const inputUOtro = document.getElementById('usuario-otro');
+            const inCorreo = document.getElementById('correo');
 
+            if (selectU.value === "OTRO") {
+                // Usuario manual
+                inputUOtro.style.display = "block"; inputUOtro.focus();
+                inCorreo.value = ""; // Limpiamos para que escriba
+            } else {
+                inputUOtro.style.display = "none"; inputUOtro.value = "";
+                // Magia: auto-llenamos el correo
+                const areaSel = selectA.value;
+                const userSel = selectU.value;
+                if (catalogoGlobal[areaSel] && catalogoGlobal[areaSel][userSel]) {
+                    inCorreo.value = catalogoGlobal[areaSel][userSel];
+                }
+            }
+        }
+
+        // Arrancamos el motor
+        cargarCatalogo();
 
         // --- ENVÍO DE DATOS ---
         let enviandoRegistro = false; 
@@ -162,46 +211,40 @@
                 horaFin = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
             }
 
-            // Validar cuál área se va a guardar
             let areaFinal = document.getElementById('area-select').value;
-            if (areaFinal === "OTRO") {
-                areaFinal = document.getElementById('area-otro').value.trim().toUpperCase();
-            }
+            if (areaFinal === "OTRO") areaFinal = document.getElementById('area-otro').value.trim().toUpperCase();
+
+            let usuarioFinal = document.getElementById('usuario-select').value;
+            if (usuarioFinal === "OTRO") usuarioFinal = document.getElementById('usuario-otro').value.trim();
 
             const data = {
                 accion: "guardar_ibreve", 
                 fecha: document.getElementById('fecha').value,
                 inicio: document.getElementById('hora-inicio').value,
                 fin: horaFin, 
-                usuario: document.getElementById('usuario').value,
-                correo: document.getElementById('correo').value,
-                area: areaFinal, // Mandamos el área ya procesada
+                usuario: usuarioFinal,
+                correo: document.getElementById('correo').value.trim(),
+                area: areaFinal, 
                 problema: document.getElementById('problema').value,
                 apoyo: document.getElementById('apoyo').value,
                 tecnico: document.getElementById('tecnico').value
             };
 
             if(!data.usuario || !data.correo || !data.problema || !data.inicio || !data.apoyo || !data.area) {
-                alert("Por favor completa todos los campos obligatorios (*), incluyendo el Área.");
-                return;
+                alert("Por favor completa todos los campos obligatorios (*)."); return;
             }
 
             enviandoRegistro = true; 
             const btn = document.getElementById('btn-enviar');
-            btn.disabled = true;
-            btn.innerText = "Guardando y enviando correo...";
+            btn.disabled = true; btn.innerText = "Guardando y enviando correo...";
 
             try {
-                const response = await fetch(scriptURL, {
-                    method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)
-                });
-
+                await fetch(scriptURL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
                 document.getElementById('msg').style.display = "block";
                 setTimeout(() => { location.reload(); }, 2500);
             } catch (e) {
                 alert("Error de conexión con el servidor.");
-                enviandoRegistro = false; 
-                btn.disabled = false; btn.innerText = "Guardar y Enviar Acuse";
+                enviandoRegistro = false; btn.disabled = false; btn.innerText = "Guardar y Enviar Acuse";
             }
         }
     </script>
