@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tickets por Asignar - SEDIF</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; }
+        :root { --primary: #2c3e50; --accent: #00ad9f; --bg: #f4f7f6; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
         .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
@@ -16,9 +16,15 @@
         
         .contact-info { font-size: 0.8em; color: #555; margin-top: 4px; display: block; }
         .dept-tag { background: #eef2f3; color: #34495e; padding: 3px 6px; border-radius: 4px; font-size: 0.8em; display: inline-block; margin-top: 4px; border: 1px solid #ccc; }
-        .btn-asignar { background: var(--accent); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85em; display: inline-block; transition: 0.3s; white-space: nowrap; }
-        .btn-asignar:hover { opacity: 0.9; transform: translateY(-2px); }
         
+        /* BOTONES */
+        .btn-asignar { background: var(--accent); color: white; text-decoration: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.85em; display: inline-block; transition: 0.3s; white-space: nowrap; }
+        .btn-cancelar { background: white; color: var(--danger); border: 2px solid var(--danger); text-decoration: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85em; display: inline-block; margin-top: 5px; transition: 0.3s; cursor: pointer; }
+        .btn-asignar:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-cancelar:hover { background: var(--danger); color: white; }
+        
+        #loader-global { display: none; text-align: center; padding: 15px; font-weight: bold; color: var(--danger); background: #fff5f5; border-radius: 10px; margin-bottom: 15px; }
+
         @media screen and (max-width: 768px) {
             table, thead, tbody, th, td, tr { display: block; }
             thead tr { position: absolute; top: -9999px; left: -9999px; }
@@ -38,6 +44,8 @@
         </div>
 
         <h2>Tickets Pendientes de Asignación</h2>
+        <div id="loader-global">Procesando cancelación... ⏳</div>
+
         <div style="overflow-x: auto;">
             <table>
                 <thead>
@@ -57,29 +65,23 @@
     </div>
 
     <script>
-        // --- AQUÍ ESTÁ EL CAMBIO DE SEGURIDAD RBAC ---
         if (localStorage.getItem('userRole') === 'admin') {
             document.getElementById('admin-back-btn').style.display = 'block';
         } else {
-            // Si un técnico o alguien sin permiso intenta entrar aquí, lo expulsamos al login
             window.location.href = "index.html"; 
         }
 
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
+
         async function cargar() {
-            // URL DE TU APPS SCRIPT WEB APP
-            const webhookURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
-            
             try {
-                // Añadimos un timestamp a la URL para evitar el caché del navegador
-                const res = await fetch(`${webhookURL}?nombre=SIN_ASIGNAR&t=${new Date().getTime()}`);
+                const res = await fetch(`${scriptURL}?nombre=SIN_ASIGNAR&t=${new Date().getTime()}`);
                 const data = await res.json();
                 const body = document.getElementById('tabla-body');
                 body.innerHTML = "";
 
-                // FILTRO FLEXIBLE
                 const ticketsReales = data.filter(t => (t.ID || t.id) && (t.ID !== "empty" && t.id !== "empty"));
 
-                // ORDENAR: Los más nuevos arriba
                 ticketsReales.sort((a, b) => {
                     const idA = parseInt((a.ID || a.id || '0').toString().replace(/\D/g, '')) || 0;
                     const idB = parseInt((b.ID || b.id || '0').toString().replace(/\D/g, '')) || 0;
@@ -87,7 +89,7 @@
                 });
 
                 if (ticketsReales.length === 0) {
-                    body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px; color: green; font-size: 1.1em; font-weight: bold;">🎉 ¡Excelente! No hay tickets pendientes por asignar.</td></tr>';
+                    body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px; color: green; font-size: 1.1em; font-weight: bold;">🎉 ¡Excelente! No hay tickets pendientes.</td></tr>';
                     return;
                 }
 
@@ -114,16 +116,48 @@
                             </td>
                             <td data-label="Problema" style="max-width: 300px; text-align: justify;">${prob}</td>
                             <td data-label="Acción">
-                                <a href="asignar.html?id=${ticketID}&user=${encodeURIComponent(user)}&loc=${encodeURIComponent(loc)}&prob=${encodeURIComponent(prob)}" 
-                                   class="btn-asignar">ASIGNAR</a>
+                                <a href="asignar.html?id=${ticketID}&user=${encodeURIComponent(user)}&loc=${encodeURIComponent(loc)}&prob=${encodeURIComponent(prob)}" class="btn-asignar">ASIGNAR</a>
+                                <button onclick="cancelarRapido('${ticketID}', '${user.replace(/'/g, "\\'")}')" class="btn-cancelar">CANCELAR</button>
                             </td>
                         </tr>`;
                 });
             } catch (e) {
-                console.error("Error:", e);
-                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red; padding: 20px;">Error de conexión. Revisa la consola o intenta recargar.</td></tr>';
+                document.getElementById('tabla-body').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red; padding: 20px;">Error de conexión.</td></tr>';
             }
         }
+
+        async function cancelarRapido(id, usuario) {
+            const motivo = prompt(`¿Motivo para cancelar el ticket #${id} de ${usuario}?`);
+            if (motivo === null) return;
+            if (motivo.trim() === "") { alert("El motivo es obligatorio para cancelar."); return; }
+
+            if (!confirm(`¿Confirmas la cancelación definitiva del ticket #${id}?`)) return;
+
+            document.getElementById('loader-global').style.display = "block";
+            
+            try {
+                await fetch(scriptURL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        accion: "reasignar_ticket",
+                        ticket: id,
+                        idNuevo: "CANCELAR",
+                        comentarios: motivo,
+                        usuario: usuario,
+                        tecnicoAnterior: "SIN_ASIGNAR"
+                    })
+                });
+
+                alert("Ticket cancelado y enviado a históricos.");
+                cargar();
+            } catch (e) {
+                alert("Error al procesar la cancelación.");
+            } finally {
+                document.getElementById('loader-global').style.display = "none";
+            }
+        }
+
         cargar();
     </script>
 </body>
