@@ -98,7 +98,7 @@
                 <h4 style="margin-top:0; color:var(--primary); text-align:center;">Productividad Ponderada del Mes</h4>
                 <canvas id="graficoProductividad"></canvas>
                 <div class="trophy-box">
-                    <div style="font-size: 0.8em; margin-bottom: 8px; color: #e67e22; text-align: center;"><i>(Ticket Normal = 3 Pts | IBREVE = 1 Pt)</i></div>
+                    <div style="font-size: 0.8em; margin-bottom: 8px; color: #e67e22; text-align: center;"><i>(Ticket Normal = 2 Pts | IBREVE = 1 Pt)</i></div>
                     <div>👑 <b>Líder Individual:</b> <span id="lider-indiv" style="color:var(--accent);">Cargando...</span></div>
                     <div>🤝 <b>Mejor Equipo:</b> <span id="lider-pareja" style="color:var(--accent);">Cargando...</span></div>
                 </div>
@@ -219,19 +219,9 @@
                     body.innerHTML = htmlTabla;
                 }
 
-                // GRÁFICO 1: CARGA ACTIVA
-                const ctx = document.getElementById('miGrafico').getContext('2d');
-                let labelsCarga = []; let datosCarga = [];
-                for (const [id, count] of Object.entries(data.porTecnico)) { labelsCarga.push(diccionarioTecnicos[id] || id); datosCarga.push(count); }
-                if(miGrafico) miGrafico.destroy(); 
-                miGrafico = new Chart(ctx, {
-                    type: 'bar', data: { labels: labelsCarga, datasets: [{ label: 'Asignados', data: datosCarga, backgroundColor: '#3498db', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
-                });
-
-                // GRÁFICO 2: PRODUCTIVIDAD PONDERADA
+                // GRÁFICO 2: PRODUCTIVIDAD PONDERADA (CANTIDADES APILADAS + CORONAS)
                 const ctxProd = document.getElementById('graficoProductividad').getContext('2d');
-                let labelsProd = []; let dPuntos = []; 
+                let labelsProd = []; let dTickets = []; let dIbreves = [];
                 
                 let mejorIndividual = { nombre: "Nadie", puntos: 0, text: "" };
                 let mejorPareja = { nombre: "Ninguna", puntos: 0, text: "" };
@@ -244,7 +234,8 @@
                     }
                     arrayIndiv.forEach(item => {
                         labelsProd.push(item[0]); 
-                        dPuntos.push(item[1].totalPuntos); 
+                        dTickets.push(item[1].tickets); // Graficamos las cantidades verdes
+                        dIbreves.push(item[1].ibreves); // Graficamos las cantidades moradas
                     });
                 }
 
@@ -262,8 +253,14 @@
                 if(graficoProd) graficoProd.destroy();
                 graficoProd = new Chart(ctxProd, {
                     type: 'bar',
-                    data: { labels: labelsProd, datasets: [{ label: 'Puntos de Esfuerzo', data: dPuntos, backgroundColor: '#2ecc71', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+                    data: { 
+                        labels: labelsProd, 
+                        datasets: [
+                            { label: 'Tickets Normales', data: dTickets, backgroundColor: '#2ecc71', borderRadius: 3 },
+                            { label: 'IBREVES (Express)', data: dIbreves, backgroundColor: '#8e44ad', borderRadius: 3 }
+                        ] 
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { x: {stacked: true}, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: true, position: 'bottom' } } }
                 });
 
                 // GRÁFICO 3 Y 4...
