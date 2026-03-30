@@ -22,8 +22,8 @@
     <div class="card">
         
         <div id="admin-back-btn" style="display: none; text-align: left; margin-bottom: 20px;">
-            <a href="pendientes.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">
-                ← Volver a Pendientes
+            <a href="admin.html" style="background: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9em; border-left: 4px solid #e67e22;">
+                ← Volver al Cuarto de Mando
             </a>
         </div>
 
@@ -72,7 +72,6 @@
     </div>
 
     <script>
-        // --- AQUÍ ESTÁ EL CAMBIO PARA MOSTRAR EL BOTÓN AL ADMIN ---
         if (localStorage.getItem('userRole') === 'admin') { 
             document.getElementById('admin-back-btn').style.display = 'block'; 
         }
@@ -85,7 +84,6 @@
         document.getElementById('user-loc').innerText = decodeURIComponent(params.get('loc') || '---');
         document.getElementById('user-prob').innerText = decodeURIComponent(params.get('prob') || '---');
 
-        // URL DE TU APPS SCRIPT WEB APP
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
 
         async function asignar() {
@@ -117,7 +115,9 @@
                 });
 
                 document.getElementById('msg').style.display = "block";
-                setTimeout(() => { window.location.href = "pendientes.html"; }, 2000);
+                
+                // AQUÍ SE HIZO EL CAMBIO DE REDIRECCIÓN A ADMIN.HTML
+                setTimeout(() => { window.location.href = "admin.html"; }, 2000);
             } catch (e) { 
                 alert("Error de comunicación con el servidor."); 
                 btn.disabled = false;
@@ -127,4 +127,3 @@
     </script>
 </body>
 </html>
- 
