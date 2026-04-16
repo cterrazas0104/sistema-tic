@@ -73,14 +73,18 @@
 
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxZhLFw530NGYRXyvdJLoMw0Y40VijyHqW0dwnkEv6Id68GiB__W77WEPYoaliusost/exec';
 
-        async function cargar() {
+async function cargar() {
             try {
                 const res = await fetch(`${scriptURL}?nombre=SIN_ASIGNAR&t=${new Date().getTime()}`);
                 const data = await res.json();
                 const body = document.getElementById('tabla-body');
                 body.innerHTML = "";
 
-                const ticketsReales = data.filter(t => (t.ID || t.id) && (t.ID !== "empty" && t.id !== "empty"));
+                // --- AQUÍ ESTÁ LA MAGIA CORREGIDA ---
+                // Si data es un arreglo (formato viejo), lo usa. Si es objeto (formato nuevo con ibreves), saca solo los tickets.
+                const ticketsArray = Array.isArray(data) ? data : (data.tickets || []);
+
+                const ticketsReales = ticketsArray.filter(t => (t.ID || t.id) && (t.ID !== "empty" && t.id !== "empty"));
 
                 ticketsReales.sort((a, b) => {
                     const idA = parseInt((a.ID || a.id || '0').toString().replace(/\D/g, '')) || 0;
@@ -122,6 +126,7 @@
                         </tr>`;
                 });
             } catch (e) {
+                console.error(e);
                 document.getElementById('tabla-body').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red; padding: 20px;">Error de conexión.</td></tr>';
             }
         }
